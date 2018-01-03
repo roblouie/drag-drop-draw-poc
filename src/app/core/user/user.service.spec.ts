@@ -1,7 +1,6 @@
-import { TestBed, inject, tick } from '@angular/core/testing';
+import { TestBed, inject } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { UserService } from './user.service';
-import { User } from './user.model';
 
 describe('UserService', () => {
   beforeEach(() => {
@@ -20,7 +19,7 @@ describe('UserService', () => {
       inject([UserService, HttpTestingController], (service: UserService, httpMock: HttpTestingController) => {
         service.getUsers().subscribe();
 
-        const req = httpMock.expectOne(req => req.url.includes('/users'));
+        const req = httpMock.expectOne(request => request.url.includes('/users'));
         expect(req.request.method).toEqual('GET');
     }));
   });

@@ -12,7 +12,7 @@ import { TransferComponent } from './banking/transfer/transfer.component';
 import { AccountsService } from './banking/accounts.service';
 import { CreateAccountComponent } from './banking/create-account/create-account.component';
 import { ProfileImageComponent } from './profile/profile-image/profile-image.component';
-import { AngularMaterialModule } from "../angular-material/angular-material.module";
+import { AngularMaterialModule } from '../angular-material/angular-material.module';
 
 @NgModule({
   imports: [

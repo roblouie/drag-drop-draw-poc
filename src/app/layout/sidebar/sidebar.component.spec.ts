@@ -5,7 +5,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import { SidebarComponent } from './sidebar.component';
 import { Observable } from 'rxjs/Observable';
 import { UserService } from '../../core/user/user.service';
-import {AngularMaterialModule} from "../../angular-material/angular-material.module";
+import { AngularMaterialModule } from '../../angular-material/angular-material.module';
 
 describe('SidebarComponent', () => {
   let component: SidebarComponent;

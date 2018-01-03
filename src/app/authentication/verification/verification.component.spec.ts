@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { ReactiveFormsModule } from '@angular/forms';
 import { VerificationComponent } from './verification.component';
 import { VerificationService } from './verification.service';
-import { AngularMaterialModule } from "../../angular-material/angular-material.module";
+import { AngularMaterialModule } from '../../angular-material/angular-material.module';
 
 describe('VerificationComponent', () => {
   let component: VerificationComponent;

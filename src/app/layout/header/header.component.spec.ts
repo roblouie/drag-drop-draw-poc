@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { HeaderComponent } from './header.component';
-import {AngularMaterialModule} from "../../angular-material/angular-material.module";
+import {AngularMaterialModule} from '../../angular-material/angular-material.module';
 
 @Component({
   template: '',

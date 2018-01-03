@@ -6,7 +6,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RegisterComponent } from './register.component';
 import { Router } from '@angular/router';
 import { RegisterService } from './register.service';
-import { AngularMaterialModule } from "../../angular-material/angular-material.module";
+import { AngularMaterialModule } from '../../angular-material/angular-material.module';
 
 describe('RegisterComponent', () => {
   let component: RegisterComponent;

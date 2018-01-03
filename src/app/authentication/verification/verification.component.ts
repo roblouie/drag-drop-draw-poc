@@ -1,6 +1,5 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { VerificationService } from './verification.service';
 import { Verification } from './verification.model';
 
@@ -25,7 +24,7 @@ export class VerificationComponent implements OnInit {
 
   sendCode(): void {
     this.verificationService.sendCode()
-      .subscribe(result => {
+      .subscribe(() => {
         this.codeSent = true;
       });
   }
@@ -37,7 +36,7 @@ export class VerificationComponent implements OnInit {
 
     const verification = this.verificationForm.value as Verification;
     this.verificationService.verify(verification)
-      .subscribe(result => {
+      .subscribe(() => {
         this.window.location.href = '/';
       }, () => {
         this.verificationFailed = true;

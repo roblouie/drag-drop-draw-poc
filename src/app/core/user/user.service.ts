@@ -5,7 +5,7 @@ import { of } from 'rxjs/observable/of';
 import { environment } from '../../../environments/environment';
 import { User } from './user.model';
 import { UserStatus } from './user-status.model';
-import { map, tap } from "rxjs/operators";
+import { tap } from 'rxjs/operators';
 
 @Injectable()
 export class UserService {

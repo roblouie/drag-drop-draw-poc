@@ -3,10 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { environment } from '../../../environments/environment';
 import { Account } from './account.model';
-import { AccountType } from './account-type.enum';
 import { Transaction } from './transaction.model';
-import { TransactionType } from './transaction-type.enum';
-import { TransactionHistory } from './transaction-history.model';
 import { Transfer } from './transfer/transfer.model';
 
 @Injectable()

@@ -1,6 +1,5 @@
-import { TestBed, inject, tick } from '@angular/core/testing';
+import { TestBed, inject } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient } from '@angular/common/http';
 import { RegisterService } from './register.service';
 import { Register } from './register.model';
 
@@ -30,7 +29,7 @@ describe('RegisterService', () => {
 
         service.register(register).subscribe();
 
-        const req = httpMock.expectOne(req => req.url.includes('/accounts'));
+        const req = httpMock.expectOne(request => request.url.includes('/accounts'));
         expect(req.request.method).toEqual('POST');
         expect(req.request.body.email).toEqual(register.email);
         expect(req.request.body.firstName).toEqual(register.firstName);

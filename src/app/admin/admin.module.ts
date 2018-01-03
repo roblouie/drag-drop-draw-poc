@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { AdminRoutingModule } from './admin-routing.module';
 import { UserAdminComponent } from './user-admin/user-admin.component';
-import { AngularMaterialModule } from "../angular-material/angular-material.module";
+import { AngularMaterialModule } from '../angular-material/angular-material.module';
 
 
 @NgModule({

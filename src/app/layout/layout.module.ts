@@ -7,7 +7,7 @@ import { HeaderComponent } from './header/header.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { ShellComponent } from './shell.component';
 import { ProfileIconComponent } from './header/profile-icon/profile-icon.component';
-import { AngularMaterialModule } from "../angular-material/angular-material.module";
+import { AngularMaterialModule } from '../angular-material/angular-material.module';
 
 @NgModule({
   imports: [

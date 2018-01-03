@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, Output, Renderer, OnChanges, SimpleChanges, EventEmitter } from '@angular/core';
+import { Directive, ElementRef, Input, Output, OnChanges, SimpleChanges, EventEmitter } from '@angular/core';
 
 @Directive({
   selector: '[appProfileImage]'
@@ -8,7 +8,7 @@ export class ProfileImageDirective implements OnChanges {
   @Input() preview: any;
   @Output() dataUrlReady = new EventEmitter<any>();
 
-  constructor(private element: ElementRef, private renderer: Renderer) { }
+  constructor(private element: ElementRef) { }
 
   ngOnChanges(changes: SimpleChanges) {
 
@@ -19,7 +19,7 @@ export class ProfileImageDirective implements OnChanges {
       element.nativeElement.style.backgroundImage = `url('${this.image}')`;
     }
 
-    reader.onloadend = (e) => {
+    reader.onloadend = () => {
       element.nativeElement.style.backgroundImage = `url('${reader.result}')`;
       this.dataUrlReady.emit(reader.result);
     };

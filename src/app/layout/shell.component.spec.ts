@@ -6,7 +6,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 
 import { ShellComponent } from './shell.component';
 import { AuthenticationService } from '../authentication/authentication.service';
-import {AngularMaterialModule} from "../angular-material/angular-material.module";
+import { AngularMaterialModule } from '../angular-material/angular-material.module';
 
 @Component({
   template: '',

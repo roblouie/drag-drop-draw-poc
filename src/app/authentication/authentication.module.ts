@@ -11,7 +11,7 @@ import { RegisterComponent } from './register/register.component';
 import { RegisterService } from './register/register.service';
 import { VerificationComponent } from './verification/verification.component';
 import { VerificationService } from './verification/verification.service';
-import { AngularMaterialModule } from "../angular-material/angular-material.module";
+import { AngularMaterialModule } from '../angular-material/angular-material.module';
 
 @NgModule({
   imports: [
