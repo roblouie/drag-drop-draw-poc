@@ -1,0 +1,19 @@
+<div #container
+     (mousemove)="onMouseMove($event)"
+     (mousedown)="onMouseClick($event)"
+     style="width: 500px; height: 500px; background-color: blue; overflow: hidden; position: relative;">
+
+  <span *ngFor="let element of positionedElementModels">
+    <positioned-image *ngIf="isImage(element)" [image]="element"></positioned-image>
+    <positioned-label *ngIf="isLabel(element)" [label]="element"></positioned-label>
+  </span>
+</div>
+
+<div>
+  <h3>Tools</h3>
+  <input type="radio" id="image-tool" value="image" name="tool" [(ngModel)]="currentTool">
+  <label for="image-tool">Image</label>
+
+  <input type="radio" id="label-tool" value="label" name="tool" [(ngModel)]="currentTool">
+  <label for="label-tool">Label</label>
+</div>

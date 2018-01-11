@@ -1,18 +1,28 @@
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { WorkAreaComponent } from "./work-area.component";
+import { PositionedImageComponent } from "./positioned-image.component";
+import { PositionedLabelComponent } from "./positioned-label.component";
+
 
 @NgModule({
+  imports: [
+    CommonModule,
+    FormsModule,
+  ],
   declarations: [
-    WorkAreaDirective,
     WorkAreaComponent,
-    TestComponent,
+    PositionedImageComponent,
+    PositionedLabelComponent,
   ],
   exports: [
-    WorkAreaDirective,
     WorkAreaComponent,
-    TestComponent,
+    PositionedImageComponent,
+    PositionedLabelComponent,
   ],
   entryComponents: [
-    TestComponent,
+
   ]
 })
 export class DragDropDraw2Module {}

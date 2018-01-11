@@ -1,4 +1,4 @@
-abstract class PositionedElement {
+export abstract class PositionedElement {
   x: number;
   y: number;
   width: number;

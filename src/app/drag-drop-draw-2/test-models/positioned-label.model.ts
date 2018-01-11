@@ -1,3 +1,5 @@
-class PositionedLabel extends PositionedElement {
-  test: string;
+import { PositionedElement } from '../positioned-element.interface';
+
+export class PositionedLabel extends PositionedElement {
+  text: string;
 }
