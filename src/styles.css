@@ -17,6 +17,10 @@ mat-card {
   margin-bottom: 10px;
 }
 
+.main-content {
+  background-color: lightgrey;
+}
+
 .card-title {
   color: #3a405b;
   font-size: 1.125rem !important;

@@ -3,11 +3,19 @@ import { PositionedImage } from './test-models/positioned-image.model';
 
 @Component({
   selector: 'positioned-image',
-  template: `<img src="{{image.source}}" [ngStyle]="{'left': image.x+'px', 'top': image.y+'px'}">`,
+  template: `<div [ngStyle]="{
+      'background-image': 'url('+image.source+')',
+      'left': image.x+'px',
+      'top': image.y+'px',
+      'width': image.width+'px',
+      'height': image.height+'px'
+    }">`,
   styles: [
     `
-      img {
+      div {
         position: absolute;
+        border: 1px dashed gray;
+        background-repeat: no-repeat;
       }
     `
   ]

@@ -3,11 +3,12 @@ import { PositionedLabel } from './test-models/positioned-label.model';
 
 @Component({
   selector: 'positioned-label',
-  template: `<div [ngStyle]="{'left': label.x+'px', 'top': label.y+'px'}">{{label.text}}</div>`,
+  template: `<div [ngStyle]="{'left': label.x+'px', 'top': label.y+'px', 'width': label.width+'px', 'height': label.height+'px'}">{{label.text}}</div>`,
   styles: [
     `
       div {
         position: absolute;
+        border: 1px dashed gray;
       }
     `
   ]

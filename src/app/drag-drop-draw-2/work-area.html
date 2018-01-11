@@ -1,7 +1,8 @@
 <div #container
      (mousemove)="onMouseMove($event)"
-     (mousedown)="onMouseClick($event)"
-     style="width: 500px; height: 500px; background-color: blue; overflow: hidden; position: relative;">
+     (mousedown)="onMouseDown($event)"
+     (mouseup)="onMouseUp($event)"
+     style="user-select: none; width: 900px; height: 600px; background-color: white; overflow: hidden; position: relative;">
 
   <span *ngFor="let element of positionedElementModels">
     <positioned-image *ngIf="isImage(element)" [image]="element"></positioned-image>
