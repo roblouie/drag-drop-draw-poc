@@ -4,6 +4,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FlexLayoutModule } from '@angular/flex-layout';
+import { NgGridModule } from 'angular2-grid';
+
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { CoreModule } from './core/core.module';
@@ -11,7 +13,7 @@ import { LayoutModule } from './layout/layout.module';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { AngularMaterialModule } from './angular-material/angular-material.module';
 import { SecurityHttpInterceptor } from './authentication/security-http-interceptor';
-
+import { DragDropDrawModule } from './drag-drop-draw/drag-drop-draw.module';
 
 @NgModule({
   declarations: [
@@ -27,7 +29,9 @@ import { SecurityHttpInterceptor } from './authentication/security-http-intercep
     AppRoutingModule,
     CoreModule,
     LayoutModule,
-    AuthenticationModule
+    AuthenticationModule,
+    NgGridModule,
+    DragDropDrawModule,
   ],
   providers: [
     {
