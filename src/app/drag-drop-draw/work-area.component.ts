@@ -39,8 +39,8 @@ export class WorkAreaComponent implements OnInit {
     const componentFactory = this.componentFactoryResolver.resolveComponentFactory(TestComponent);
     const component = this.workareaElement.createComponent(componentFactory);
 
-    component.location.nativeElement.style['left'] = `${positionData.workspaceX}px`;
-    component.location.nativeElement.style['top'] = `${positionData.workspaceY}px`;
+    component.location.nativeElement.style['left'] = `${positionData.x}px`;
+    component.location.nativeElement.style['top'] = `${positionData.y}px`;
 
     // This doesn't work, not fully sure why, I'm guessing since the component hasn't been rendered yet.
     // But using rendered is supposedly the more 'angular' way of doing this
@@ -56,8 +56,8 @@ export class WorkAreaComponent implements OnInit {
   private getMousePositionRelativeToWorkspace(event: any) {
     const workspaceRectangle = this.containerElement.element.nativeElement.getBoundingClientRect();
     return {
-      workspaceX: event.clientX - workspaceRectangle.left,
-      workspaceY: event.clientY - workspaceRectangle.top,
+      x: event.clientX - workspaceRectangle.left,
+      y: event.clientY - workspaceRectangle.top,
       screenX: event.clientX,
       screenY: event.layerY
     }

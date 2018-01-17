@@ -1,17 +1,20 @@
-<div #container
+<div id="work-area" #container
      (mousemove)="onMouseMove($event)"
      (mousedown)="onMouseDown($event)"
      (mouseup)="onMouseUp($event)"
      style="user-select: none; width: 900px; height: 600px; background-color: white; overflow: hidden; position: relative;">
 
   <span *ngFor="let element of positionedElementModels">
-    <positioned-image *ngIf="isImage(element)" [image]="element"></positioned-image>
-    <positioned-label *ngIf="isLabel(element)" [label]="element"></positioned-label>
+    <positioned-image *ngIf="isImage(element)" [selected]="selectedItems.includes(element)" [image]="element"></positioned-image>
+    <positioned-label *ngIf="isLabel(element)" [selected]="selectedItems.includes(element)" [label]="element"></positioned-label>
   </span>
 </div>
 
 <div>
   <h3>Tools</h3>
+  <input type="radio" id="selection-tool" value="select" name="tool" [(ngModel)]="currentTool">
+  <label for="selection-tool">Select</label>
+
   <input type="radio" id="image-tool" value="image" name="tool" [(ngModel)]="currentTool">
   <label for="image-tool">Image</label>
 

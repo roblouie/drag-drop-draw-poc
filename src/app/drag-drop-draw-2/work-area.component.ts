@@ -2,10 +2,10 @@ import {
   Component, ComponentFactoryResolver, ElementRef, Inject, OnInit, Renderer2, ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
-import {PositionedImage} from "./test-models/positioned-image.model";
-import {PositionedElement} from "./positioned-element.interface";
-import {PositionedLabel} from "./test-models/positioned-label.model";
+import { PositionedImage } from "./test-models/positioned-image.model";
+import { PositionedElement } from "./positioned-element.model";
+import { PositionedLabel } from "./test-models/positioned-label.model";
+import {Point} from "./point.model";
 
 @Component({
   selector: 'app-work-area',
@@ -15,9 +15,11 @@ import {PositionedLabel} from "./test-models/positioned-label.model";
 export class WorkAreaComponent implements OnInit {
 
   positionedElementModels: PositionedElement[] = [];
-  currentTool: string = 'image';
+  selectedItems: PositionedElement[] = [];
+  currentTool = 'image';
   startingPosition;
-  isDrawing: boolean = false;
+  isDrawing = false;
+  isMoving = false;
   dragBox;
   @ViewChild('container') private containerElement: ElementRef;
 
@@ -37,62 +39,86 @@ export class WorkAreaComponent implements OnInit {
   }
 
   onMouseUp(event: any) {
-    if (!this.isDrawing) {
-      return;
+    if (this.isDrawing) {
+      const endingPosition = this.getMousePositionRelativeToWorkspace(event);
+      const top = this.startingPosition.y < endingPosition.y ? this.startingPosition.y : endingPosition.y;
+      const left = this.startingPosition.x < endingPosition.x ? this.startingPosition.x : endingPosition.x;
+      let width = Math.abs(this.startingPosition.x - endingPosition.x);
+      let height = Math.abs(this.startingPosition.y - endingPosition.y);
+
+      // set width and height to default minimum if the user just clicked or barely dragged
+      if (this.currentTool !== 'select' && width <= 2 && height <= 2) {
+        width = 100;
+        height = 50;
+      }
+
+      switch (this.currentTool) {
+        case 'select':
+          this.createMultiSelection(left, top, width, height);
+          break;
+        case 'image':
+          this.addImage(left, top, width, height);
+          break;
+        case 'label':
+          this.addLabel(left, top, width, height);
+          break;
+
+      }
+      this.isDrawing = false;
+      this.renderer.removeChild(this.containerElement.nativeElement, this.dragBox);
     }
 
-    const endingPosition = this.getMousePositionRelativeToWorkspace(event);
-    const top = this.startingPosition.workspaceY < endingPosition.workspaceY ? this.startingPosition.workspaceY : endingPosition.workspaceY;
-    const left = this.startingPosition.workspaceX < endingPosition.workspaceX ? this.startingPosition.workspaceX : endingPosition.workspaceX;
-    let width = Math.abs(this.startingPosition.workspaceX - endingPosition.workspaceX);
-    let height = Math.abs(this.startingPosition.workspaceY - endingPosition.workspaceY);
-
-    // set width and height to default minimum if the user just clicked or barely dragged
-    if (width <= 2 && height <= 2) {
-      width = 100;
-      height = 50;
-    }
-
-    if (this.currentTool === 'image') {
-      this.addImage(left, top, width, height);
-    } else {
-      this.addLabel(left, top, width, height);
-    }
-
-    this.isDrawing = false;
+    this.isMoving = false;
     this.startingPosition = null;
-
-    console.log(endingPosition);
-    console.log(this.currentTool);
-
-    this.renderer.removeChild(this.containerElement.nativeElement, this.dragBox);
   }
 
   onMouseMove(event: any) {
-    if (!this.isDrawing) {
-      return;
-    }
-
     const currentPosition = this.getMousePositionRelativeToWorkspace(event);
-    const top = this.startingPosition.workspaceY < currentPosition.workspaceY ? this.startingPosition.workspaceY : currentPosition.workspaceY;
-    const left = this.startingPosition.workspaceX < currentPosition.workspaceX ? this.startingPosition.workspaceX : currentPosition.workspaceX;
-    let width = Math.abs(this.startingPosition.workspaceX - currentPosition.workspaceX);
-    let height = Math.abs(this.startingPosition.workspaceY - currentPosition.workspaceY);
-    this.renderer.setStyle(this.dragBox, 'top', `${top}px`);
-    this.renderer.setStyle(this.dragBox, 'left', `${left}px`);
-    this.renderer.setStyle(this.dragBox, 'height', `${height}px`);
-    this.renderer.setStyle(this.dragBox, 'width', `${width}px`);
+    if (this.isDrawing) {
+      const top = this.startingPosition.y < currentPosition.y ? this.startingPosition.y : currentPosition.y;
+      const left = this.startingPosition.x < currentPosition.x ? this.startingPosition.x : currentPosition.x;
+      const width = Math.abs(this.startingPosition.x - currentPosition.x);
+      const height = Math.abs(this.startingPosition.y - currentPosition.y);
+      this.renderer.setStyle(this.dragBox, 'top', `${top}px`);
+      this.renderer.setStyle(this.dragBox, 'left', `${left}px`);
+      this.renderer.setStyle(this.dragBox, 'height', `${height}px`);
+      this.renderer.setStyle(this.dragBox, 'width', `${width}px`);
+    } else if (this.isMoving) {
+      const distance = new Point(currentPosition.x - this.startingPosition.x, currentPosition.y - this.startingPosition.y);
+      this.selectedItems.forEach(item => {
+        item.x += distance.x;
+        item.y += distance.y;
+      });
+      this.startingPosition = currentPosition;
+      console.log(`Distance: ${distance.y}, Location: ${this.selectedItems[0].y}`);
+    }
   }
 
   onMouseDown(event: any) {
-    this.isDrawing = true;
+    const clickedElementID: string = event.target.id;
+    const elementID: number = Number(clickedElementID);
+    const isClickingEmptyWorkspaceArea = clickedElementID === 'work-area';
     this.startingPosition = this.getMousePositionRelativeToWorkspace(event);
-    this.renderer.setStyle(this.dragBox, 'top', `${this.startingPosition.workspaceY}px`);
-    this.renderer.setStyle(this.dragBox, 'left', `${this.startingPosition.workspaceX}px`);
-    this.renderer.setStyle(this.dragBox, 'height', `0px`);
-    this.renderer.setStyle(this.dragBox, 'width', `0px`);
 
-    this.renderer.appendChild(this.containerElement.nativeElement, this.dragBox);
+    if (isClickingEmptyWorkspaceArea || this.currentTool !== 'select') {
+        this.isDrawing = true;
+        this.renderer.setStyle(this.dragBox, 'top', `${this.startingPosition.y}px`);
+        this.renderer.setStyle(this.dragBox, 'left', `${this.startingPosition.x}px`);
+        this.renderer.setStyle(this.dragBox, 'height', `0px`);
+        this.renderer.setStyle(this.dragBox, 'width', `0px`);
+
+        this.renderer.appendChild(this.containerElement.nativeElement, this.dragBox);
+    } else {
+        this.isMoving = true;
+        if (!this.isClickingSelectedItem(elementID)) {
+          const selectedItem = this.positionedElementModels.find(model => model.id === elementID);
+          this.selectedItems = [selectedItem];
+        }
+    }
+  }
+
+  private isClickingSelectedItem(clickedID): boolean {
+    return this.selectedItems.map(item => item.id).includes(clickedID);
   }
 
   private addImage(x, y, width, height) {
@@ -102,6 +128,8 @@ export class WorkAreaComponent implements OnInit {
     image.y = y;
     image.width = width;
     image.height = height;
+    // For now, just setting the id to the index, this will most likely come from the db ?
+    image.id = this.positionedElementModels.length;
     this.positionedElementModels.push(image);
   }
 
@@ -112,22 +140,31 @@ export class WorkAreaComponent implements OnInit {
     label.y = y;
     label.width = width;
     label.height = height;
+    // For now, just setting the id to the index, this will most likely come from the db ?
+    label.id = this.positionedElementModels.length;
     this.positionedElementModels.push(label);
   }
 
-  //addComponent(positionData) {
-  //  // Push the component so that we can keep track of which components are created
-  //  this.components.push(component);
-  //}
-  //
   private getMousePositionRelativeToWorkspace(event: any) {
     const workspaceRectangle = this.elRef.nativeElement.getBoundingClientRect();
     return {
-      workspaceX: event.clientX - workspaceRectangle.left,
-      workspaceY: event.clientY - workspaceRectangle.top,
-      screenX: event.clientX,
-      screenY: event.clientY
+      x: event.clientX - workspaceRectangle.left,
+      y: event.clientY - workspaceRectangle.top,
     }
+  }
+
+  // Selection of a single item has to happen on mousedown, because you can click, hold, and drag items
+  // Consider putting IDs
+  private createMultiSelection(selectionX, selectionY, selectionWidth, selectionHeight) {
+    const selectionBottom = selectionY + selectionHeight;
+    const selectionRight = selectionX + selectionWidth;
+
+    const rawSelected = this.positionedElementModels.filter(model => {
+      return model.x < selectionRight && model.right > selectionX &&
+             model.y < selectionBottom && model.bottom > selectionY;
+    });
+
+    this.selectedItems = rawSelected;
   }
 
 }

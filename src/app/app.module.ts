@@ -4,7 +4,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FlexLayoutModule } from '@angular/flex-layout';
-import { NgGridModule } from 'angular2-grid';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
@@ -30,7 +29,6 @@ import { DragDropDrawModule } from './drag-drop-draw/drag-drop-draw.module';
     CoreModule,
     LayoutModule,
     AuthenticationModule,
-    NgGridModule,
     DragDropDrawModule,
   ],
   providers: [
