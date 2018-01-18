@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { WorkAreaComponent } from "./work-area.component";
 import { PositionedImageComponent } from "./positioned-image.component";
 import { PositionedLabelComponent } from "./positioned-label.component";
+import {AlignmentToolsComponent} from "./alignment-tools/alignment-tools.component";
+import { WorkAreaService } from './work-area.service';
 
 
 @NgModule({
@@ -15,14 +17,15 @@ import { PositionedLabelComponent } from "./positioned-label.component";
     WorkAreaComponent,
     PositionedImageComponent,
     PositionedLabelComponent,
+    AlignmentToolsComponent,
   ],
   exports: [
     WorkAreaComponent,
     PositionedImageComponent,
     PositionedLabelComponent,
+    AlignmentToolsComponent,
   ],
-  entryComponents: [
-
-  ]
+  entryComponents: [],
+  providers: [WorkAreaService]
 })
 export class DragDropDraw2Module {}

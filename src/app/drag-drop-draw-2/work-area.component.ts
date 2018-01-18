@@ -1,11 +1,9 @@
-import {
-  Component, ComponentFactoryResolver, ElementRef, Inject, OnInit, Renderer2, ViewChild,
-  ViewContainerRef
-} from '@angular/core';
-import { PositionedImage } from "./test-models/positioned-image.model";
-import { PositionedElement } from "./positioned-element.model";
-import { PositionedLabel } from "./test-models/positioned-label.model";
-import {Point} from "./point.model";
+import { Component, ElementRef, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { PositionedImage } from './test-models/positioned-image.model';
+import { PositionedElement } from './positioned-element.model';
+import { PositionedLabel } from './test-models/positioned-label.model';
+import { Point } from './point.model';
+import { WorkAreaService } from './work-area.service';
 
 @Component({
   selector: 'app-work-area',
@@ -13,9 +11,6 @@ import {Point} from "./point.model";
   styleUrls: ['./work-area.scss']
 })
 export class WorkAreaComponent implements OnInit {
-
-  positionedElementModels: PositionedElement[] = [];
-  selectedItems: PositionedElement[] = [];
   currentTool = 'image';
   startingPosition;
   isDrawing = false;
@@ -23,7 +18,11 @@ export class WorkAreaComponent implements OnInit {
   dragBox;
   @ViewChild('container') private containerElement: ElementRef;
 
-  constructor(private elRef: ElementRef, private renderer: Renderer2) {}
+  constructor(
+    private elRef: ElementRef,
+    private renderer: Renderer2,
+    private workAreaService: WorkAreaService,
+  ) {}
 
   ngOnInit() {
     this.dragBox = this.renderer.createElement('div');
@@ -85,12 +84,11 @@ export class WorkAreaComponent implements OnInit {
       this.renderer.setStyle(this.dragBox, 'width', `${width}px`);
     } else if (this.isMoving) {
       const distance = new Point(currentPosition.x - this.startingPosition.x, currentPosition.y - this.startingPosition.y);
-      this.selectedItems.forEach(item => {
+      this.workAreaService.selectedItems.forEach(item => {
         item.x += distance.x;
         item.y += distance.y;
       });
       this.startingPosition = currentPosition;
-      console.log(`Distance: ${distance.y}, Location: ${this.selectedItems[0].y}`);
     }
   }
 
@@ -109,16 +107,25 @@ export class WorkAreaComponent implements OnInit {
 
         this.renderer.appendChild(this.containerElement.nativeElement, this.dragBox);
     } else {
-        this.isMoving = true;
-        if (!this.isClickingSelectedItem(elementID)) {
-          const selectedItem = this.positionedElementModels.find(model => model.id === elementID);
-          this.selectedItems = [selectedItem];
+      this.isMoving = true;
+      const selectedItem = this.workAreaService.positionedElementModels.find(model => model.id === elementID);
+      if (this.isClickingSelectedItem(elementID)) {
+        if (event.ctrlKey) {
+          const selectedIndex = this.workAreaService.selectedItems.indexOf(selectedItem);
+          this.workAreaService.selectedItems.splice(selectedIndex, 1);
         }
+      } else {
+        if (event.ctrlKey) {
+          this.workAreaService.selectedItems.push(selectedItem);
+        } else {
+          this.workAreaService.selectedItems = [selectedItem];
+        }
+      }
     }
   }
 
   private isClickingSelectedItem(clickedID): boolean {
-    return this.selectedItems.map(item => item.id).includes(clickedID);
+    return this.workAreaService.selectedItems.map(item => item.id).includes(clickedID);
   }
 
   private addImage(x, y, width, height) {
@@ -129,8 +136,8 @@ export class WorkAreaComponent implements OnInit {
     image.width = width;
     image.height = height;
     // For now, just setting the id to the index, this will most likely come from the db ?
-    image.id = this.positionedElementModels.length;
-    this.positionedElementModels.push(image);
+    image.id = this.workAreaService.positionedElementModels.length;
+    this.workAreaService.positionedElementModels.push(image);
   }
 
   private addLabel(x, y, width, height) {
@@ -141,30 +148,26 @@ export class WorkAreaComponent implements OnInit {
     label.width = width;
     label.height = height;
     // For now, just setting the id to the index, this will most likely come from the db ?
-    label.id = this.positionedElementModels.length;
-    this.positionedElementModels.push(label);
+    label.id = this.workAreaService.positionedElementModels.length;
+    this.workAreaService.positionedElementModels.push(label);
   }
 
   private getMousePositionRelativeToWorkspace(event: any) {
-    const workspaceRectangle = this.elRef.nativeElement.getBoundingClientRect();
+    const workspaceRectangle = this.containerElement.nativeElement.getBoundingClientRect();
     return {
       x: event.clientX - workspaceRectangle.left,
       y: event.clientY - workspaceRectangle.top,
     }
   }
 
-  // Selection of a single item has to happen on mousedown, because you can click, hold, and drag items
-  // Consider putting IDs
   private createMultiSelection(selectionX, selectionY, selectionWidth, selectionHeight) {
     const selectionBottom = selectionY + selectionHeight;
     const selectionRight = selectionX + selectionWidth;
 
-    const rawSelected = this.positionedElementModels.filter(model => {
+    this.workAreaService.selectedItems = this.workAreaService.positionedElementModels.filter(model => {
       return model.x < selectionRight && model.right > selectionX &&
              model.y < selectionBottom && model.bottom > selectionY;
     });
-
-    this.selectedItems = rawSelected;
   }
 
 }

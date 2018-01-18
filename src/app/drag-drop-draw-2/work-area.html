@@ -1,12 +1,14 @@
+<alignment-tools></alignment-tools>
+
 <div id="work-area" #container
      (mousemove)="onMouseMove($event)"
      (mousedown)="onMouseDown($event)"
      (mouseup)="onMouseUp($event)"
      style="user-select: none; width: 900px; height: 600px; background-color: white; overflow: hidden; position: relative;">
 
-  <span *ngFor="let element of positionedElementModels">
-    <positioned-image *ngIf="isImage(element)" [selected]="selectedItems.includes(element)" [image]="element"></positioned-image>
-    <positioned-label *ngIf="isLabel(element)" [selected]="selectedItems.includes(element)" [label]="element"></positioned-label>
+  <span *ngFor="let element of workAreaService.positionedElementModels">
+    <positioned-image *ngIf="isImage(element)" [selected]="workAreaService.selectedItems.includes(element)" [image]="element"></positioned-image>
+    <positioned-label *ngIf="isLabel(element)" [selected]="workAreaService.selectedItems.includes(element)" [label]="element"></positioned-label>
   </span>
 </div>
 
