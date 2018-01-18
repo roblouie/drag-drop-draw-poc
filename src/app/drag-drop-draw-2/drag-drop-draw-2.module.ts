@@ -7,6 +7,7 @@ import { PositionedLabelComponent } from './positioned-label.component';
 import { AlignmentToolsComponent } from './alignment-tools/alignment-tools.component';
 import { WorkAreaService } from './work-area.service';
 import { SizeToolsComponent } from './size-tools/size-tools.component';
+import {SpacingToolsComponent} from "./spacing-tools/spacing-tools.component";
 
 
 @NgModule({
@@ -20,6 +21,7 @@ import { SizeToolsComponent } from './size-tools/size-tools.component';
     PositionedLabelComponent,
     AlignmentToolsComponent,
     SizeToolsComponent,
+    SpacingToolsComponent,
   ],
   exports: [
     WorkAreaComponent,
@@ -27,6 +29,7 @@ import { SizeToolsComponent } from './size-tools/size-tools.component';
     PositionedLabelComponent,
     AlignmentToolsComponent,
     SizeToolsComponent,
+    SpacingToolsComponent,
   ],
   entryComponents: [],
   providers: [WorkAreaService]

@@ -1,10 +1,10 @@
-import {Component, ElementRef, Input, OnInit, Renderer2} from '@angular/core';
+import { Component, ElementRef, Input, OnInit, Renderer2 } from '@angular/core';
 import { WorkAreaService } from '../work-area.service';
 import { PositionedElement } from '../positioned-element.model';
 
 @Component({
-  selector: 'size-tools',
-  templateUrl: './size-tools.html',
+  selector: 'spacing-tools',
+  templateUrl: './spacing-tools.html',
   styles: [],
 })
 export class SpacingToolsComponent implements OnInit {
@@ -14,7 +14,26 @@ export class SpacingToolsComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  sameHorizontalSpacing() {}
+  sameHorizontalSpacing() {
+    const sortedLeftToRight = this.workAreaService.selectedItems.slice().sort((a, b) => {
+      return a.x - b.x;
+    });
+
+    const spaces = [];
+
+    sortedLeftToRight.forEach((item, index, array) => {
+      if (index < array.length - 1) {
+        spaces.push(array[index + 1].x - item.right);
+      }
+    });
+
+    const averageSpace = spaces.reduce((accumulator, currentValue) => accumulator + currentValue) / spaces.length;
+
+    for (let i = 1; i < spaces.length; i++) {
+      const matchedSelectedItem = this.workAreaService.selectedItems.find(item => item.id === sortedLeftToRight[i].id);
+      matchedSelectedItem.x = sortedLeftToRight[i - 1].right + averageSpace;
+    }
+  }
 
   sameVerticalSpacing() {}
 
