@@ -53,7 +53,7 @@ export class WorkAreaComponent implements OnInit {
 
       switch (this.currentTool) {
         case 'select':
-          this.createMultiSelection(left, top, width, height);
+          this.createMultiSelection(left, top, width, height, event.ctrlKey);
           break;
         case 'image':
           this.addImage(left, top, width, height);
@@ -116,7 +116,7 @@ export class WorkAreaComponent implements OnInit {
         }
       } else {
         if (event.ctrlKey) {
-          this.workAreaService.selectedItems.push(selectedItem);
+          this.workAreaService.selectedItems.unshift(selectedItem);
         } else {
           this.workAreaService.selectedItems = [selectedItem];
         }
@@ -160,14 +160,19 @@ export class WorkAreaComponent implements OnInit {
     }
   }
 
-  private createMultiSelection(selectionX, selectionY, selectionWidth, selectionHeight) {
+  private createMultiSelection(selectionX, selectionY, selectionWidth, selectionHeight, shouldAdd) {
     const selectionBottom = selectionY + selectionHeight;
     const selectionRight = selectionX + selectionWidth;
 
-    this.workAreaService.selectedItems = this.workAreaService.positionedElementModels.filter(model => {
+    const selectedItems = this.workAreaService.positionedElementModels.filter(model => {
       return model.x < selectionRight && model.right > selectionX &&
              model.y < selectionBottom && model.bottom > selectionY;
     });
-  }
 
+    if (shouldAdd) {
+      this.workAreaService.selectedItems.unshift(...selectedItems);
+    } else {
+      this.workAreaService.selectedItems = selectedItems;
+    }
+  }
 }
