@@ -80,6 +80,9 @@ export class SpacingToolsComponent implements OnInit {
   }
 
   decreaseHorizontalSpacing() {
+    // TODO: Fix logic around spacing of items later in arrays, and over-shooting due to items later in the
+    // array going too far due to multiplication by the index.
+
     const referenceItem = this.getReferenceItem();
 
     const sortedLeftToRight = this.workAreaService.selectedItems.slice().sort((a, b) => {
@@ -100,6 +103,31 @@ export class SpacingToolsComponent implements OnInit {
     // so if no match is found the split point is set to the length of the array (this will cause slice() to return an empty array).
     let rightSplitIndex = sortedLeftToRight.findIndex(item => item.x > referenceItem.x);
     rightSplitIndex = rightSplitIndex === -1 ? sortedLeftToRight.length : rightSplitIndex;
+
+    //for (let i = 0; i < sortedLeftToRight.length; i++) {
+    //  if (i < leftSplitIndex) {
+    //    const indexDifference = leftSplitIndex - i;
+    //    const distance = referenceItem.x - sortedLeftToRight[i].x;
+    //    const isCloserThanInterval = distance < this.interval;
+    //
+    //    if (isCloserThanInterval) {
+    //      sortedLeftToRight[i].x += distance;
+    //    } else {
+    //      sortedLeftToRight[i].x += this.interval * (indexDifference + 1);
+    //    }
+    //  } else if (i >= rightSplitIndex) {
+    //    const indexDifference = i - rightSplitIndex;
+    //    const distance = sortedLeftToRight[i].x - referenceItem.x;
+    //    const isCloserThanInterval = distance < this.interval;
+    //
+    //    if (isCloserThanInterval) {
+    //      sortedLeftToRight[i].x -= distance;
+    //    } else {
+    //      sortedLeftToRight[i].x -= this.interval * (indexDifference + 1);
+    //    }
+    //  }
+    //}
+
 
     // For proper spacing to be applied, we want the arrays sorted from closest to the reference item to the farthest away (because this
     // lets us multiply the interval by the index in the loop), so we reverse the left items.
