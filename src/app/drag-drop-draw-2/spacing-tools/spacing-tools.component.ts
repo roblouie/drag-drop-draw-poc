@@ -80,122 +80,124 @@ export class SpacingToolsComponent implements OnInit {
   }
 
   decreaseHorizontalSpacing() {
-    // TODO: Fix logic around spacing of items later in arrays, and over-shooting due to items later in the
-    // array going too far due to multiplication by the index.
-
     const referenceItem = this.getReferenceItem();
+    const leftItems = [];
+    const rightItems = [];
 
-    const sortedLeftToRight = this.workAreaService.selectedItems.slice().sort((a, b) => {
-      return a.x - b.x;
-    });
-
-    // We want to split the array in two, items that are to the left of the reference item and items that are to the right of
-    // the reference item. We do not want to include items with the same x position as the reference item, because they should not
-    // be adjusted any further.
-
-    // For the left split point we find the first item in the left-to-right sorted array who's x position matches the reference item's.
-    // This is guaranteed to find a match, because at the very least the reference item itself will match it's own x position. Everything
-    // before this index will be included in the left items array.
-    const leftSplitIndex = sortedLeftToRight.findIndex(item => item.x === referenceItem.x);
-
-    // For the right split point we find the first item in the left-to-right sorted array who's x position is greater-than (to the right of)
-    // the reference items. This is not guaranteed to find a match since there could be zero items to the right of the reference item,
-    // so if no match is found the split point is set to the length of the array (this will cause slice() to return an empty array).
-    let rightSplitIndex = sortedLeftToRight.findIndex(item => item.x > referenceItem.x);
-    rightSplitIndex = rightSplitIndex === -1 ? sortedLeftToRight.length : rightSplitIndex;
-
-    //for (let i = 0; i < sortedLeftToRight.length; i++) {
-    //  if (i < leftSplitIndex) {
-    //    const indexDifference = leftSplitIndex - i;
-    //    const distance = referenceItem.x - sortedLeftToRight[i].x;
-    //    const isCloserThanInterval = distance < this.interval;
-    //
-    //    if (isCloserThanInterval) {
-    //      sortedLeftToRight[i].x += distance;
-    //    } else {
-    //      sortedLeftToRight[i].x += this.interval * (indexDifference + 1);
-    //    }
-    //  } else if (i >= rightSplitIndex) {
-    //    const indexDifference = i - rightSplitIndex;
-    //    const distance = sortedLeftToRight[i].x - referenceItem.x;
-    //    const isCloserThanInterval = distance < this.interval;
-    //
-    //    if (isCloserThanInterval) {
-    //      sortedLeftToRight[i].x -= distance;
-    //    } else {
-    //      sortedLeftToRight[i].x -= this.interval * (indexDifference + 1);
-    //    }
-    //  }
-    //}
-
-
-    // For proper spacing to be applied, we want the arrays sorted from closest to the reference item to the farthest away (because this
-    // lets us multiply the interval by the index in the loop), so we reverse the left items.
-    const leftItems = sortedLeftToRight.slice(0, leftSplitIndex).reverse();
-    const rightItems = sortedLeftToRight.slice(rightSplitIndex);
-
-    // We now have two arrays, one that contains only items that are positioned to the left of the reference item, and one that contains
-    // only items positioned to the right of the reference item. The reference item itself and any other items with the same x position
-    // are not included in either. We now loop through each and move them closer to the reference item by the interval * (index + 1),
-    // with the current interval of 8, that means the closest item would move in 8 pixels, the next closest 16, and the next 24. This
-    // creates the uniform spacing. Items closer than 8 pixels are moved closer by their distance to the reference item, making sure their
-    // position matches rather than moving to the other side of it.
-
-    leftItems.forEach((item, index) => {
-      const distance = referenceItem.x - item.x;
-      const isCloserThanInterval = distance < this.interval;
-
-      if (isCloserThanInterval) {
-        item.x += distance;
-      } else {
-        item.x += this.interval * (index + 1);
+    this.workAreaService.selectedItems.forEach(item => {
+      if (item.x < referenceItem.x) {
+        leftItems.push(item);
+      } else if (item.x > referenceItem.x) {
+        rightItems.push(item);
       }
     });
 
-    rightItems.forEach((item, index) => {
-      const distance = item.x - referenceItem.x;
-      const isCloserThanInterval = distance < this.interval;
+    leftItems.sort((a, b) => b.x - a.x);
+    rightItems.sort((a, b) => a.x - b.x);
 
-      if (isCloserThanInterval) {
-        item.x -= distance;
-      } else {
-        item.x -= this.interval * (index + 1);
-      }
+    leftItems.forEach((item, index, array) => {
+      const itemToTheRight = index === 0 ? referenceItem : array[index - 1];
+      const distanceToRightItem = itemToTheRight.x - item.x;
+      const thisInterval = this.interval * (index + 1);
+
+      item.x += distanceToRightItem < thisInterval ? distanceToRightItem : thisInterval;
+    });
+
+    rightItems.forEach((item, index, array) => {
+      const itemToTheLeft = index === 0 ? referenceItem : array[index - 1];
+      const distanceToLeftItem = item.x - itemToTheLeft.x;
+      const thisInterval = this.interval * (index + 1);
+
+      item.x -= distanceToLeftItem < thisInterval ? distanceToLeftItem : thisInterval;
     });
   }
 
   decreaseVerticalSpacing() {
     const referenceItem = this.getReferenceItem();
+    const topItems = [];
+    const bottomItems = [];
 
     this.workAreaService.selectedItems.forEach(item => {
-      const difference = item.y - referenceItem.y;
-      const interval = Math.abs(difference) > this.interval ? this.interval : Math.abs(difference);
-
-      if (difference > 0) {
-        item.y -= interval;
-      } else {
-        item.y += interval;
+      if (item.y < referenceItem.y) {
+        topItems.push(item);
+      } else if (item.y > referenceItem.y) {
+        bottomItems.push(item);
       }
-    })
+    });
+
+    topItems.sort((a, b) => b.y - a.y);
+    bottomItems.sort((a, b) => a.y - b.y);
+
+    topItems.forEach((item, index, array) => {
+      const itemToTheRight = index === 0 ? referenceItem : array[index - 1];
+      const distanceToRightItem = itemToTheRight.y - item.y;
+      const thisInterval = this.interval * (index + 1);
+
+      item.y += distanceToRightItem < thisInterval ? distanceToRightItem : thisInterval;
+    });
+
+    bottomItems.forEach((item, index, array) => {
+      const itemToTheLeft = index === 0 ? referenceItem : array[index - 1];
+      const distanceToLeftItem = item.y - itemToTheLeft.y;
+      const thisInterval = this.interval * (index + 1);
+
+      item.y -= distanceToLeftItem < thisInterval ? distanceToLeftItem : thisInterval;
+    });
   }
 
+  // If all left edges are different it's easy to just make two lists and spread them apart, ultimately the exact opposite of
+  // decrease vertical spacing. However if any left edges line up, the split becomes different.
+
+  // Items  with the same left edge as the reference item are then adjusted as follows:
+  // Items with a vertical position above the reference item shift to the left, with items higher on the screen shifting farther to the left,
+  // i.e. an item directly above the reference item will shift left the 8px interval, an item directly above that one will shift left 16px,
+  // and so on.
+  // Items with a vertical position below the reference item shift to the right, with items lower on the screen shifting farther to the right,
+  // i.e. an item directly below the reference item will shift right the 8px interval, an item directly below that one will shift right 16px,
+  // and so on.
+  // Items that also share the same vertical position as the reference item will be moved to the right, with items drawn later shifting more
+  // or selected later moving the greater distance
   increaseHorizontalSpacing() {
+    const referenceItem = this.getReferenceItem();
+    const leftItems = [];
+    const rightItems = [];
+
+    // if at the same x position as reference, send to the right.
+    this.workAreaService.selectedItems.forEach(item => {
+      if (item.x < referenceItem.x) {
+        leftItems.push(item);
+      } else if (item.id !== referenceItem.id) {
+        rightItems.push(item);
+      }
+    });
+
+    leftItems.sort((a, b) => b.x - a.x);
+    rightItems.sort((a, b) => a.x - b.x);
+
+    leftItems.forEach((item, index, array) => {
+      item.x -= this.interval * (index + 1);
+    });
+
+    rightItems.forEach((item, index, array) => {
+      item.x += this.interval * (index + 1);
+    });
+  }
+
+  increaseVerticalSpacing() {
     const referenceItem = this.getReferenceItem();
 
     this.workAreaService.selectedItems.forEach(item => {
       if (item.id !== referenceItem.id) {
-        const difference = item.x - referenceItem.x;
+        const difference = item.y - referenceItem.y;
 
         if (difference > 0) {
-          item.x += this.interval;
+          item.y += this.interval;
         } else {
-          item.x -= this.interval;
+          item.y -= this.interval;
         }
       }
-    })
+    });
   }
-
-  increaseVerticalSpacing() {}
 
   private getReferenceItem() {
     const [lastItemInSelection] = this.workAreaService.selectedItems.slice(-1);
