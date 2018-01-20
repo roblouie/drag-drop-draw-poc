@@ -16,12 +16,12 @@ export class SizeToolsComponent implements OnInit {
 
   sameWidths() {
     const referenceItem = this.getReferenceItem();
-    this.workAreaService.selectedItems.forEach(item => item.width = referenceItem.width);
+    this.workAreaService.getSelectedElements().forEach(item => item.width = referenceItem.width);
   }
 
   sameHeights() {
     const referenceItem = this.getReferenceItem();
-    this.workAreaService.selectedItems.forEach(item => item.height = referenceItem.height);
+    this.workAreaService.getSelectedElements().forEach(item => item.height = referenceItem.height);
   }
 
   sameSize() {
@@ -33,11 +33,11 @@ export class SizeToolsComponent implements OnInit {
 
   private applySize(callback) {
     this.referenceItem = this.getReferenceItem();
-    this.workAreaService.selectedItems.forEach(callback);
+    this.workAreaService.getSelectedElements().forEach(callback);
   }
 
   private getReferenceItem() {
-    const [lastItemInSelection] = this.workAreaService.selectedItems.slice(-1);
+    const [lastItemInSelection] = this.workAreaService.getSelectedElements().slice(-1);
     return lastItemInSelection;
   }
 }

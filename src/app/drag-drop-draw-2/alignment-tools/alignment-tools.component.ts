@@ -14,40 +14,40 @@ export class AlignmentToolsComponent implements OnInit {
 
   alignLefts() {
     const referenceItem = this.getReferenceItem();
-    this.workAreaService.selectedItems.forEach(item => item.x = referenceItem.x);
+    this.workAreaService.getSelectedElements().forEach(item => item.x = referenceItem.x);
   }
 
   alignRights() {
     const referenceItem = this.getReferenceItem();
-    this.workAreaService.selectedItems.forEach(item => item.x = referenceItem.right - item.width);
+    this.workAreaService.getSelectedElements().forEach(item => item.x = referenceItem.right - item.width);
   }
 
   alignHorizontalCenters() {
     const referenceItem = this.getReferenceItem();
-    this.workAreaService.selectedItems.forEach(item => {
+    this.workAreaService.getSelectedElements().forEach(item => {
       item.x = (referenceItem.x + referenceItem.width / 2) - item.width / 2;
     });
   }
 
   alignVerticalCenters() {
     const referenceItem = this.getReferenceItem();
-    this.workAreaService.selectedItems.forEach(item => {
+    this.workAreaService.getSelectedElements().forEach(item => {
       item.y = (referenceItem.y + referenceItem.height / 2) - item.height / 2;
     });
   }
 
   alignTops() {
     const referenceItem = this.getReferenceItem();
-    this.workAreaService.selectedItems.forEach(item => item.y = referenceItem.y);
+    this.workAreaService.getSelectedElements().forEach(item => item.y = referenceItem.y);
   }
 
   alignBottoms() {
     const referenceItem = this.getReferenceItem();
-    this.workAreaService.selectedItems.forEach(item => item.y = referenceItem.bottom - item.height);
+    this.workAreaService.getSelectedElements().forEach(item => item.y = referenceItem.bottom - item.height);
   }
 
   private getReferenceItem() {
-    const [lastItemInSelection] = this.workAreaService.selectedItems.slice(-1);
+    const [lastItemInSelection] = this.workAreaService.getSelectedElements().slice(-1);
     return lastItemInSelection;
   }
 }

@@ -3,7 +3,7 @@ import { PositionedLabel } from './test-models/positioned-label.model';
 
 @Component({
   selector: 'positioned-label',
-  template: `<div id="{{label.id}}" [ngStyle]="{'left': label.x+'px', 'top': label.y+'px', 'width': label.width+'px', 'height': label.height+'px'}" [ngClass]="{'selected': selected}">{{label.text}}</div>`,
+  template: `<div id="{{label.id}}" [ngStyle]="{'left': label.x+'px', 'top': label.y+'px', 'width': label.width+'px', 'height': label.height+'px'}" [ngClass]="{'selected': isSelected, 'anchor': isAnchor}">{{label.text}}</div>`,
   styles: [
     `
       div {
@@ -19,12 +19,17 @@ import { PositionedLabel } from './test-models/positioned-label.model';
       .selected:active {
           cursor: move;
       }
+
+      .anchor {
+          border-color: red;
+      }
     `
   ]
 })
 export class PositionedLabelComponent implements OnInit {
   @Input() label: PositionedLabel;
-  @Input() selected: boolean;
+  @Input() isSelected: boolean;
+  @Input() isAnchor: boolean;
 
   constructor(private elRef:ElementRef, private renderer:Renderer2) {}
 

@@ -12,6 +12,7 @@ import { WorkAreaService } from './work-area.service';
 })
 export class WorkAreaComponent implements OnInit {
   currentTool = 'image';
+  readonly mouseButtons = { left: 0, middle: 1, right: 2 };
   startingPosition;
   isDrawing = false;
   isMoving = false;
@@ -25,6 +26,7 @@ export class WorkAreaComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.disableDefaultContextMenu();
     this.dragBox = this.renderer.createElement('div');
     this.renderer.addClass(this.dragBox, 'selector');
   }
@@ -38,6 +40,10 @@ export class WorkAreaComponent implements OnInit {
   }
 
   onMouseUp(event: any) {
+    if (event.button === 2) {
+      return false;
+    }
+
     if (this.isDrawing) {
       const endingPosition = this.getMousePositionRelativeToWorkspace(event);
       const top = this.startingPosition.y < endingPosition.y ? this.startingPosition.y : endingPosition.y;
@@ -84,7 +90,7 @@ export class WorkAreaComponent implements OnInit {
       this.renderer.setStyle(this.dragBox, 'width', `${width}px`);
     } else if (this.isMoving) {
       const distance = new Point(currentPosition.x - this.startingPosition.x, currentPosition.y - this.startingPosition.y);
-      this.workAreaService.selectedItems.forEach(item => {
+      this.workAreaService.getSelectedElements().forEach(item => {
         item.x += distance.x;
         item.y += distance.y;
       });
@@ -98,34 +104,38 @@ export class WorkAreaComponent implements OnInit {
     const isClickingEmptyWorkspaceArea = clickedElementID === 'work-area';
     this.startingPosition = this.getMousePositionRelativeToWorkspace(event);
 
-    if (isClickingEmptyWorkspaceArea || this.currentTool !== 'select') {
-        this.isDrawing = true;
-        this.renderer.setStyle(this.dragBox, 'top', `${this.startingPosition.y}px`);
-        this.renderer.setStyle(this.dragBox, 'left', `${this.startingPosition.x}px`);
-        this.renderer.setStyle(this.dragBox, 'height', `0px`);
-        this.renderer.setStyle(this.dragBox, 'width', `0px`);
+    // TODO: Update logic for right mouse button down. Right button can only select a single item on mouse-down, it can't move items or
+    // select multiple. Remaining right click handling happens on mouseUp, where the context menu is opened.
 
-        this.renderer.appendChild(this.containerElement.nativeElement, this.dragBox);
+    if (isClickingEmptyWorkspaceArea || this.currentTool !== 'select') {
+      this.isDrawing = true;
+      this.renderer.setStyle(this.dragBox, 'top', `${this.startingPosition.y}px`);
+      this.renderer.setStyle(this.dragBox, 'left', `${this.startingPosition.x}px`);
+      this.renderer.setStyle(this.dragBox, 'height', `0px`);
+      this.renderer.setStyle(this.dragBox, 'width', `0px`);
+
+      this.renderer.appendChild(this.containerElement.nativeElement, this.dragBox);
     } else {
       this.isMoving = true;
       const selectedItem = this.workAreaService.positionedElementModels.find(model => model.id === elementID);
       if (this.isClickingSelectedItem(elementID)) {
         if (event.ctrlKey) {
-          const selectedIndex = this.workAreaService.selectedItems.indexOf(selectedItem);
-          this.workAreaService.selectedItems.splice(selectedIndex, 1);
+          this.workAreaService.removeElementFromSelection(selectedItem);
+        } else {
+          this.workAreaService.setElementAsAnchor(selectedItem);
         }
       } else {
         if (event.ctrlKey) {
-          this.workAreaService.selectedItems.unshift(selectedItem);
+          this.workAreaService.addElementToSelection(selectedItem);
         } else {
-          this.workAreaService.selectedItems = [selectedItem];
+          this.workAreaService.setSelectedElements([selectedItem]);
         }
       }
     }
   }
 
   private isClickingSelectedItem(clickedID): boolean {
-    return this.workAreaService.selectedItems.map(item => item.id).includes(clickedID);
+    return this.workAreaService.getSelectedElements().map(item => item.id).includes(clickedID);
   }
 
   private addImage(x, y, width, height) {
@@ -170,9 +180,15 @@ export class WorkAreaComponent implements OnInit {
     });
 
     if (shouldAdd) {
-      this.workAreaService.selectedItems.unshift(...selectedItems);
+      this.workAreaService.addElementsToSelection(selectedItems);
     } else {
-      this.workAreaService.selectedItems = selectedItems;
+      this.workAreaService.setSelectedElements(selectedItems);
     }
+  }
+
+  private disableDefaultContextMenu() {
+    this.containerElement.nativeElement.addEventListener('contextmenu', function(e){
+      e.preventDefault();
+    }, false);
   }
 }

@@ -10,7 +10,7 @@ import { PositionedImage } from './test-models/positioned-image.model';
       'width': image.width+'px',
       'height': image.height+'px'
     }"
-    [ngClass]="{'selected': selected}"
+    [ngClass]="{'selected': isSelected, 'anchor': isAnchor}"
   >`,
   styles: [
     `
@@ -25,15 +25,20 @@ import { PositionedImage } from './test-models/positioned-image.model';
         cursor: move;
       }
 
-        .selected:active {
-            cursor: move;
-        }
+      .selected:active {
+          cursor: move;
+      }
+
+      .anchor {
+          border-color: red;
+      }
     `
   ]
 })
 export class PositionedImageComponent implements OnInit {
   @Input() image: PositionedImage;
-  @Input() selected: boolean;
+  @Input() isSelected: boolean;
+  @Input() isAnchor: boolean;
 
   constructor(private elRef: ElementRef, private renderer: Renderer2) {}
 

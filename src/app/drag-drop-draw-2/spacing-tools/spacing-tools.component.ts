@@ -14,53 +14,50 @@ export class SpacingToolsComponent implements OnInit {
   private sortRightToLeft = (a, b) => b.x - a.x;
   private sortTopToBottom = (a, b) => a.y - b.y;
   private sortBottomToTop = (a, b) => b.y - a.y;
-  private sumUpArray = (accumulator, currentValue) => accumulator + currentValue;
 
   constructor(private workAreaService: WorkAreaService) {}
 
   ngOnInit(): void {}
 
   sameHorizontalSpacing() {
-    const sortedLeftToRight = this.workAreaService.selectedItems.slice().sort(this.sortLeftToRight);
+    const sortedLeftToRight = this.workAreaService.getSelectedElements().sort(this.sortLeftToRight);
+    const numberOfSpaces = sortedLeftToRight.length - 1;
 
     let totalSpaceBetweenItems = 0;
-
     sortedLeftToRight.forEach((item, index, array) => {
-      if (index < array.length - 1) {
-        totalSpaceBetweenItems += (array[index + 1].x - item.right);
+      if (index < numberOfSpaces) {
+        totalSpaceBetweenItems += array[index + 1].x - item.right;
       }
     });
 
-    const averageSpaceBetweenItems = totalSpaceBetweenItems / (sortedLeftToRight.length - 1);
+    const averageSpaceBetweenItems = totalSpaceBetweenItems / numberOfSpaces;
 
-    for (let i = 1; i < (sortedLeftToRight.length - 1); i++) {
-      const matchedSelectedItem = this.workAreaService.selectedItems.find(item => item.id === sortedLeftToRight[i].id);
-      matchedSelectedItem.x = sortedLeftToRight[i - 1].right + averageSpaceBetweenItems;
+    for (let i = 1; i < numberOfSpaces; i++) {
+      sortedLeftToRight[i].x = sortedLeftToRight[i - 1].right + averageSpaceBetweenItems;
     }
   }
 
   sameVerticalSpacing() {
-    const sortedTopToBottom = this.workAreaService.selectedItems.slice().sort(this.sortTopToBottom);
+    const sortedTopToBottom = this.workAreaService.getSelectedElements().sort(this.sortTopToBottom);
+    const numberOfSpaces = sortedTopToBottom.length - 1;
 
-    const spaces = [];
-
+    let totalSpaceBetweenItems = 0;
     sortedTopToBottom.forEach((item, index, array) => {
-      if (index < array.length - 1) {
-        spaces.push(array[index + 1].y - item.bottom);
+      if (index < numberOfSpaces) {
+        totalSpaceBetweenItems += array[index + 1].y - item.bottom;
       }
     });
 
-    const averageSpace = spaces.reduce(this.sumUpArray) / spaces.length;
+    const averageSpaceBetweenItems = totalSpaceBetweenItems / numberOfSpaces;
 
-    for (let i = 1; i < spaces.length; i++) {
-      const matchedSelectedItem = this.workAreaService.selectedItems.find(item => item.id === sortedTopToBottom[i].id);
-      matchedSelectedItem.y = sortedTopToBottom[i - 1].bottom + averageSpace;
+    for (let i = 1; i < numberOfSpaces; i++) {
+      sortedTopToBottom[i].y = sortedTopToBottom[i - 1].bottom + averageSpaceBetweenItems;
     }
   }
 
+  // TODO: Fix this, elements should all move towards the anchor item as space is removed, instead they currently move left.
   removeHorizontalSpacing() {
-    this.workAreaService.selectedItems
-      .slice()
+    this.workAreaService.getSelectedElements()
       .sort(this.sortLeftToRight)
       .forEach((item, index, array) => {
         if (index < array.length - 1) {
@@ -69,9 +66,9 @@ export class SpacingToolsComponent implements OnInit {
       });
   }
 
+  // TODO: Fix this, elements should all move towards the anchor item as space is removed, instead they currently move up.
   removeVerticalSpacing() {
-    this.workAreaService.selectedItems
-      .slice()
+    this.workAreaService.getSelectedElements()
       .sort(this.sortTopToBottom)
       .forEach((item, index, array) => {
         if (index < array.length - 1) {
@@ -85,7 +82,7 @@ export class SpacingToolsComponent implements OnInit {
     const leftItems = [];
     const rightItems = [];
 
-    this.workAreaService.selectedItems.forEach(item => {
+    this.workAreaService.getSelectedElements().forEach(item => {
       if (item.x < referenceItem.x) {
         leftItems.push(item);
       } else if (item.x > referenceItem.x) {
@@ -99,17 +96,17 @@ export class SpacingToolsComponent implements OnInit {
     leftItems.forEach((item, index, array) => {
       const itemToTheRight = index === 0 ? referenceItem : array[index - 1];
       const distanceToRightItem = itemToTheRight.x - item.x;
-      const thisInterval = this.interval * (index + 1);
+      const currentInterval = this.interval * (index + 1);
 
-      item.x += distanceToRightItem < thisInterval ? distanceToRightItem : thisInterval;
+      item.x += distanceToRightItem < currentInterval ? distanceToRightItem : currentInterval;
     });
 
     rightItems.forEach((item, index, array) => {
       const itemToTheLeft = index === 0 ? referenceItem : array[index - 1];
       const distanceToLeftItem = item.x - itemToTheLeft.x;
-      const thisInterval = this.interval * (index + 1);
+      const currentInterval = this.interval * (index + 1);
 
-      item.x -= distanceToLeftItem < thisInterval ? distanceToLeftItem : thisInterval;
+      item.x -= distanceToLeftItem < currentInterval ? distanceToLeftItem : currentInterval;
     });
   }
 
@@ -118,7 +115,7 @@ export class SpacingToolsComponent implements OnInit {
     const topItems = [];
     const bottomItems = [];
 
-    this.workAreaService.selectedItems.forEach(item => {
+    this.workAreaService.getSelectedElements().forEach(item => {
       if (item.y < referenceItem.y) {
         topItems.push(item);
       } else if (item.y > referenceItem.y) {
@@ -132,22 +129,22 @@ export class SpacingToolsComponent implements OnInit {
     topItems.forEach((item, index, array) => {
       const itemToTheRight = index === 0 ? referenceItem : array[index - 1];
       const distanceToRightItem = itemToTheRight.y - item.y;
-      const thisInterval = this.interval * (index + 1);
+      const currentInterval = this.interval * (index + 1);
 
-      item.y += distanceToRightItem < thisInterval ? distanceToRightItem : thisInterval;
+      item.y += distanceToRightItem < currentInterval ? distanceToRightItem : currentInterval;
     });
 
     bottomItems.forEach((item, index, array) => {
       const itemToTheLeft = index === 0 ? referenceItem : array[index - 1];
       const distanceToLeftItem = item.y - itemToTheLeft.y;
-      const thisInterval = this.interval * (index + 1);
+      const currentInterval = this.interval * (index + 1);
 
-      item.y -= distanceToLeftItem < thisInterval ? distanceToLeftItem : thisInterval;
+      item.y -= distanceToLeftItem < currentInterval ? distanceToLeftItem : currentInterval;
     });
   }
 
   // If all left edges are different it's easy to just make two lists and spread them apart, ultimately the exact opposite of
-  // decrease vertical spacing. However if any left edges line up, the split becomes different.
+  // decrease spacing. However if any left edges line up, the split becomes different.
   // Items  with the same left edge as the reference item are then adjusted as follows:
   // Items with a position above the reference item shift to the left, with items higher on the screen shifting farther to the left,
   // i.e. an item directly above the reference item will shift left the 8px interval, an item directly above that one will shift left 16px,
@@ -163,7 +160,7 @@ export class SpacingToolsComponent implements OnInit {
     const rightItems = [];
     const sameXItems = [];
 
-    this.workAreaService.selectedItems.forEach(item => {
+    this.workAreaService.getSelectedElements().forEach(item => {
       if (item.x < referenceItem.x) {
         leftItems.push(item);
       } else if (item.x > referenceItem.x) {
@@ -203,7 +200,7 @@ export class SpacingToolsComponent implements OnInit {
     const bottomItems = [];
     const sameYItems = [];
 
-    this.workAreaService.selectedItems.forEach(item => {
+    this.workAreaService.getSelectedElements().forEach(item => {
       if (item.y < referenceItem.y) {
         topItems.push(item);
       } else if (item.y > referenceItem.y) {
@@ -238,7 +235,7 @@ export class SpacingToolsComponent implements OnInit {
   }
 
   private getReferenceItem() {
-    const [lastItemInSelection] = this.workAreaService.selectedItems.slice(-1);
+    const [lastItemInSelection] = this.workAreaService.getSelectedElements().slice(-1);
     return lastItemInSelection;
   }
 }
