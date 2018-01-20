@@ -10,36 +10,37 @@ import { PositionedElement } from '../positioned-element.model';
 export class SpacingToolsComponent implements OnInit {
   private referenceItem: PositionedElement;
   readonly interval = 8;
+  private sortLeftToRight = (a, b) => a.x - b.x;
+  private sortRightToLeft = (a, b) => b.x - a.x;
+  private sortTopToBottom = (a, b) => a.y - b.y;
+  private sortBottomToTop = (a, b) => b.y - a.y;
+  private sumUpArray = (accumulator, currentValue) => accumulator + currentValue;
 
   constructor(private workAreaService: WorkAreaService) {}
 
   ngOnInit(): void {}
 
   sameHorizontalSpacing() {
-    const sortedLeftToRight = this.workAreaService.selectedItems.slice().sort((a, b) => {
-      return a.x - b.x;
-    });
+    const sortedLeftToRight = this.workAreaService.selectedItems.slice().sort(this.sortLeftToRight);
 
-    const spaces = [];
+    let totalSpaceBetweenItems = 0;
 
     sortedLeftToRight.forEach((item, index, array) => {
       if (index < array.length - 1) {
-        spaces.push(array[index + 1].x - item.right);
+        totalSpaceBetweenItems += (array[index + 1].x - item.right);
       }
     });
 
-    const averageSpace = spaces.reduce((accumulator, currentValue) => accumulator + currentValue) / spaces.length;
+    const averageSpaceBetweenItems = totalSpaceBetweenItems / (sortedLeftToRight.length - 1);
 
-    for (let i = 1; i < spaces.length; i++) {
+    for (let i = 1; i < (sortedLeftToRight.length - 1); i++) {
       const matchedSelectedItem = this.workAreaService.selectedItems.find(item => item.id === sortedLeftToRight[i].id);
-      matchedSelectedItem.x = sortedLeftToRight[i - 1].right + averageSpace;
+      matchedSelectedItem.x = sortedLeftToRight[i - 1].right + averageSpaceBetweenItems;
     }
   }
 
   sameVerticalSpacing() {
-    const sortedTopToBottom = this.workAreaService.selectedItems.slice().sort((a, b) => {
-      return a.y - b.y;
-    });
+    const sortedTopToBottom = this.workAreaService.selectedItems.slice().sort(this.sortTopToBottom);
 
     const spaces = [];
 
@@ -49,7 +50,7 @@ export class SpacingToolsComponent implements OnInit {
       }
     });
 
-    const averageSpace = spaces.reduce((accumulator, currentValue) => accumulator + currentValue) / spaces.length;
+    const averageSpace = spaces.reduce(this.sumUpArray) / spaces.length;
 
     for (let i = 1; i < spaces.length; i++) {
       const matchedSelectedItem = this.workAreaService.selectedItems.find(item => item.id === sortedTopToBottom[i].id);
@@ -58,25 +59,25 @@ export class SpacingToolsComponent implements OnInit {
   }
 
   removeHorizontalSpacing() {
-    const sortedLeftToRight = this.workAreaService.selectedItems.slice().sort((a, b) => {
-      return a.x - b.x;
-    });
-
-    sortedLeftToRight.forEach((item, index, array) => {
-      if (index < array.length - 1) {
-        array[index + 1].x = item.right;
-      }
-    });
+    this.workAreaService.selectedItems
+      .slice()
+      .sort(this.sortLeftToRight)
+      .forEach((item, index, array) => {
+        if (index < array.length - 1) {
+          array[index + 1].x = item.right;
+        }
+      });
   }
 
   removeVerticalSpacing() {
-    const sortedTopToBottom = this.workAreaService.selectedItems.slice().sort((a, b) =>  a.y - b.y);
-
-    sortedTopToBottom.forEach((item, index, array) => {
-      if (index < array.length - 1) {
-        array[index + 1].y = item.bottom;
-      }
-    });
+    this.workAreaService.selectedItems
+      .slice()
+      .sort(this.sortTopToBottom)
+      .forEach((item, index, array) => {
+        if (index < array.length - 1) {
+          array[index + 1].y = item.bottom;
+        }
+      });
   }
 
   decreaseHorizontalSpacing() {
@@ -92,8 +93,8 @@ export class SpacingToolsComponent implements OnInit {
       }
     });
 
-    leftItems.sort((a, b) => b.x - a.x);
-    rightItems.sort((a, b) => a.x - b.x);
+    leftItems.sort(this.sortRightToLeft);
+    rightItems.sort(this.sortLeftToRight);
 
     leftItems.forEach((item, index, array) => {
       const itemToTheRight = index === 0 ? referenceItem : array[index - 1];
@@ -125,8 +126,8 @@ export class SpacingToolsComponent implements OnInit {
       }
     });
 
-    topItems.sort((a, b) => b.y - a.y);
-    bottomItems.sort((a, b) => a.y - b.y);
+    topItems.sort(this.sortBottomToTop);
+    bottomItems.sort(this.sortTopToBottom);
 
     topItems.forEach((item, index, array) => {
       const itemToTheRight = index === 0 ? referenceItem : array[index - 1];
@@ -147,13 +148,12 @@ export class SpacingToolsComponent implements OnInit {
 
   // If all left edges are different it's easy to just make two lists and spread them apart, ultimately the exact opposite of
   // decrease vertical spacing. However if any left edges line up, the split becomes different.
-
   // Items  with the same left edge as the reference item are then adjusted as follows:
-  // Items with a vertical position above the reference item shift to the left, with items higher on the screen shifting farther to the left,
+  // Items with a position above the reference item shift to the left, with items higher on the screen shifting farther to the left,
   // i.e. an item directly above the reference item will shift left the 8px interval, an item directly above that one will shift left 16px,
   // and so on.
-  // Items with a vertical position below the reference item shift to the right, with items lower on the screen shifting farther to the right,
-  // i.e. an item directly below the reference item will shift right the 8px interval, an item directly below that one will shift right 16px,
+  // Items with a position below the reference item shift to the right, with items lower on the screen shifting farther to the right,
+  // i.e. an item directly below the reference item will shift right the 8px interval, an item directly below that will shift right 16px,
   // and so on.
   // Items that also share the same vertical position as the reference item will be moved to the right, with items drawn later shifting more
   // or selected later moving the greater distance
@@ -161,41 +161,79 @@ export class SpacingToolsComponent implements OnInit {
     const referenceItem = this.getReferenceItem();
     const leftItems = [];
     const rightItems = [];
+    const sameXItems = [];
 
-    // if at the same x position as reference, send to the right.
     this.workAreaService.selectedItems.forEach(item => {
       if (item.x < referenceItem.x) {
         leftItems.push(item);
-      } else if (item.id !== referenceItem.id) {
+      } else if (item.x > referenceItem.x) {
         rightItems.push(item);
+      } else if (item.id !== referenceItem.id) {
+        sameXItems.push(item);
       }
     });
 
-    leftItems.sort((a, b) => b.x - a.x);
-    rightItems.sort((a, b) => a.x - b.x);
+    leftItems.sort(this.sortRightToLeft);
+    rightItems.sort(this.sortLeftToRight);
+    sameXItems.sort(this.sortTopToBottom);
 
-    leftItems.forEach((item, index, array) => {
+    const itemsToAddToRight = [];
+    sameXItems.forEach(item => {
+      if (item.y < referenceItem.y) {
+        leftItems.unshift(item);
+      } else {
+        itemsToAddToRight.push(item);
+      }
+    });
+
+    rightItems.unshift(...itemsToAddToRight);
+
+    leftItems.forEach((item, index) => {
       item.x -= this.interval * (index + 1);
     });
 
-    rightItems.forEach((item, index, array) => {
+    rightItems.forEach((item, index) => {
       item.x += this.interval * (index + 1);
     });
   }
 
   increaseVerticalSpacing() {
     const referenceItem = this.getReferenceItem();
+    const topItems = [];
+    const bottomItems = [];
+    const sameYItems = [];
 
     this.workAreaService.selectedItems.forEach(item => {
-      if (item.id !== referenceItem.id) {
-        const difference = item.y - referenceItem.y;
-
-        if (difference > 0) {
-          item.y += this.interval;
-        } else {
-          item.y -= this.interval;
-        }
+      if (item.y < referenceItem.y) {
+        topItems.push(item);
+      } else if (item.y > referenceItem.y) {
+        bottomItems.push(item);
+      } else if (item.id !== referenceItem.id) {
+        sameYItems.push(item);
       }
+    });
+
+    topItems.sort(this.sortBottomToTop);
+    bottomItems.sort(this.sortTopToBottom);
+    sameYItems.sort(this.sortLeftToRight);
+
+    const itemsToAddToBottom = [];
+    sameYItems.forEach(item => {
+      if (item.x < referenceItem.x) {
+        topItems.unshift(item);
+      } else {
+        itemsToAddToBottom.push(item);
+      }
+    });
+
+    bottomItems.unshift(...itemsToAddToBottom);
+
+    topItems.forEach((item, index) => {
+      item.y -= this.interval * (index + 1);
+    });
+
+    bottomItems.forEach((item, index) => {
+      item.y += this.interval * (index + 1);
     });
   }
 
