@@ -102,6 +102,8 @@ export class WorkAreaComponent implements OnInit {
       this.startingPosition = currentPosition;
     } else if (this.isResizing) {
 
+      // TODO: Refactor this, possibly to the sizing service, also fix the bug where if the item gets too small it can't be made large again
+      // Note: Probably fix size bug by checking proposed new size, and if smaller than the limit, set to the limit
       if (this.dragHandle === 'top-left') {
         this.positionedElementService.getSelectedElements().forEach(item => {
           if (item.width > 10) {
@@ -153,6 +155,23 @@ export class WorkAreaComponent implements OnInit {
           if (item.width > 10) {
             item.x += currentPosition.x - this.startingPosition.x;
             item.width += this.startingPosition.x - currentPosition.x;
+          }
+          if (item.height > 10) {
+            item.height += currentPosition.y - this.startingPosition.y;
+          }
+        });
+
+      } else if (this.dragHandle === 'bottom-center') {
+        this.positionedElementService.getSelectedElements().forEach(item => {
+          if (item.height > 10) {
+            item.height += currentPosition.y - this.startingPosition.y;
+          }
+        });
+
+      } else if (this.dragHandle === 'bottom-right') {
+        this.positionedElementService.getSelectedElements().forEach(item => {
+          if (item.width > 10) {
+            item.width += currentPosition.x - this.startingPosition.x;
           }
           if (item.height > 10) {
             item.height += currentPosition.y - this.startingPosition.y;
