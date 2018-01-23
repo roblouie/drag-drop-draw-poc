@@ -12,7 +12,6 @@ import { LayoutModule } from './layout/layout.module';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { AngularMaterialModule } from './angular-material/angular-material.module';
 import { SecurityHttpInterceptor } from './authentication/security-http-interceptor';
-import { DragDropDrawModule } from './drag-drop-draw/drag-drop-draw.module';
 
 @NgModule({
   declarations: [
@@ -29,7 +28,6 @@ import { DragDropDrawModule } from './drag-drop-draw/drag-drop-draw.module';
     CoreModule,
     LayoutModule,
     AuthenticationModule,
-    DragDropDrawModule,
   ],
   providers: [
     {

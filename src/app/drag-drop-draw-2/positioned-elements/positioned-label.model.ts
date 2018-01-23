@@ -1,4 +1,4 @@
-import { PositionedElement } from '../positioned-element.model';
+import { PositionedElement } from './positioned-element.model';
 
 export class PositionedLabel extends PositionedElement {
   text: string;

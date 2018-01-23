@@ -1,6 +1,3 @@
-<alignment-tools></alignment-tools>
-<size-tools></size-tools>
-<spacing-tools></spacing-tools>
 
 <div id="work-area" #container
      (mousemove)="onMouseMove($event)"
@@ -8,9 +5,9 @@
      (mouseup)="onMouseUp($event)"
      style="user-select: none; width: 900px; height: 600px; background-color: white; overflow: hidden; position: relative;">
 
-  <span *ngFor="let element of workAreaService.positionedElementModels">
-    <positioned-image *ngIf="isImage(element)" [isSelected]="workAreaService.isElementSelected(element)" [isAnchor]="workAreaService.isAnchorElement(element)" [image]="element"></positioned-image>
-    <positioned-label *ngIf="isLabel(element)" [isSelected]="workAreaService.isElementSelected(element)" [isAnchor]="workAreaService.isAnchorElement(element)" [label]="element"></positioned-label>
+  <span *ngFor="let element of positionedElementService.positionedElementModels">
+    <positioned-image *ngIf="isImage(element)" [isSelected]="positionedElementService.isElementSelected(element)" [isReferenceElement]="positionedElementService.isReferenceElement(element)" [image]="element" appSelectable></positioned-image>
+    <positioned-label *ngIf="isLabel(element)" [isSelected]="positionedElementService.isElementSelected(element)" [isReferenceElement]="positionedElementService.isReferenceElement(element)" [label]="element" appSelectable></positioned-label>
   </span>
 </div>
 

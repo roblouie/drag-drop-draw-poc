@@ -1,13 +1,14 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { WorkAreaComponent } from './work-area.component';
-import { PositionedImageComponent } from './positioned-image.component';
-import { PositionedLabelComponent } from './positioned-label.component';
-import { AlignmentToolsComponent } from './alignment-tools/alignment-tools.component';
-import { WorkAreaService } from './work-area.service';
-import { SizeToolsComponent } from './size-tools/size-tools.component';
-import {SpacingToolsComponent} from "./spacing-tools/spacing-tools.component";
+import { WorkAreaComponent } from './work-area/work-area.component';
+import { PositionedImageComponent } from './positioned-elements/positioned-image.component';
+import { PositionedLabelComponent } from './positioned-elements/positioned-label.component';
+import { PositionedElementService } from './positioned-element.service';
+import { AlignmentService } from './alignment.service';
+import { SizingService } from './sizing.service';
+import { SpacingService } from './spacing.service';
+import { SelectableDirective } from './selectable/selectable.directive';
 
 
 @NgModule({
@@ -19,19 +20,19 @@ import {SpacingToolsComponent} from "./spacing-tools/spacing-tools.component";
     WorkAreaComponent,
     PositionedImageComponent,
     PositionedLabelComponent,
-    AlignmentToolsComponent,
-    SizeToolsComponent,
-    SpacingToolsComponent,
+    SelectableDirective,
   ],
   exports: [
     WorkAreaComponent,
     PositionedImageComponent,
     PositionedLabelComponent,
-    AlignmentToolsComponent,
-    SizeToolsComponent,
-    SpacingToolsComponent,
   ],
   entryComponents: [],
-  providers: [WorkAreaService]
+  providers: [
+    PositionedElementService,
+    AlignmentService,
+    SizingService,
+    SpacingService,
+  ]
 })
 export class DragDropDraw2Module {}

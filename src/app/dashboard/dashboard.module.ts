@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-//import { NgGridModule } from 'angular2-grid';
 
 import { DashboardComponent } from './dashboard.component';
 import { DashboardRoutingModule } from './dashboard-routing.module';
 import { ExamplesModule } from '../examples/examples.module';
 import { AngularMaterialModule } from '../angular-material/angular-material.module';
 import { DragDropDraw2Module } from '../drag-drop-draw-2/drag-drop-draw-2.module';
+import { FormatToolbarModule } from '../format-toolbar/format-toolbar.module';
 
 @NgModule({
   imports: [
@@ -14,8 +14,8 @@ import { DragDropDraw2Module } from '../drag-drop-draw-2/drag-drop-draw-2.module
     AngularMaterialModule,
     DashboardRoutingModule,
     ExamplesModule,
-    //NgGridModule,
     DragDropDraw2Module,
+    FormatToolbarModule,
   ],
   declarations: [DashboardComponent]
 })

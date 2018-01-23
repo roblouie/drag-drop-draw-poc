@@ -1,26 +1,18 @@
-import { Component, ElementRef, Input, OnInit, Renderer2 } from '@angular/core';
-import { WorkAreaService } from '../work-area.service';
-import { PositionedElement } from '../positioned-element.model';
+import { Injectable } from '@angular/core';
+import { PositionedElementService } from './positioned-element.service';
 
-@Component({
-  selector: 'spacing-tools',
-  templateUrl: './spacing-tools.html',
-  styles: [],
-})
-export class SpacingToolsComponent implements OnInit {
-  private referenceItem: PositionedElement;
+@Injectable()
+export class SpacingService {
   readonly interval = 8;
   private sortLeftToRight = (a, b) => a.x - b.x;
   private sortRightToLeft = (a, b) => b.x - a.x;
   private sortTopToBottom = (a, b) => a.y - b.y;
   private sortBottomToTop = (a, b) => b.y - a.y;
 
-  constructor(private workAreaService: WorkAreaService) {}
-
-  ngOnInit(): void {}
+  constructor(private positionedElementService: PositionedElementService) {}
 
   sameHorizontalSpacing() {
-    const sortedLeftToRight = this.workAreaService.getSelectedElements().sort(this.sortLeftToRight);
+    const sortedLeftToRight = this.positionedElementService.getSelectedElements().sort(this.sortLeftToRight);
     const numberOfSpaces = sortedLeftToRight.length - 1;
 
     let totalSpaceBetweenItems = 0;
@@ -38,7 +30,7 @@ export class SpacingToolsComponent implements OnInit {
   }
 
   sameVerticalSpacing() {
-    const sortedTopToBottom = this.workAreaService.getSelectedElements().sort(this.sortTopToBottom);
+    const sortedTopToBottom = this.positionedElementService.getSelectedElements().sort(this.sortTopToBottom);
     const numberOfSpaces = sortedTopToBottom.length - 1;
 
     let totalSpaceBetweenItems = 0;
@@ -57,7 +49,7 @@ export class SpacingToolsComponent implements OnInit {
 
   // TODO: Fix this, elements should all move towards the anchor item as space is removed, instead they currently move left.
   removeHorizontalSpacing() {
-    this.workAreaService.getSelectedElements()
+    this.positionedElementService.getSelectedElements()
       .sort(this.sortLeftToRight)
       .forEach((item, index, array) => {
         if (index < array.length - 1) {
@@ -68,7 +60,7 @@ export class SpacingToolsComponent implements OnInit {
 
   // TODO: Fix this, elements should all move towards the anchor item as space is removed, instead they currently move up.
   removeVerticalSpacing() {
-    this.workAreaService.getSelectedElements()
+    this.positionedElementService.getSelectedElements()
       .sort(this.sortTopToBottom)
       .forEach((item, index, array) => {
         if (index < array.length - 1) {
@@ -78,14 +70,14 @@ export class SpacingToolsComponent implements OnInit {
   }
 
   decreaseHorizontalSpacing() {
-    const referenceItem = this.getReferenceItem();
+    const referenceElement = this.positionedElementService.getReferenceElement();
     const leftItems = [];
     const rightItems = [];
 
-    this.workAreaService.getSelectedElements().forEach(item => {
-      if (item.x < referenceItem.x) {
+    this.positionedElementService.getSelectedElements().forEach(item => {
+      if (item.x < referenceElement.x) {
         leftItems.push(item);
-      } else if (item.x > referenceItem.x) {
+      } else if (item.x > referenceElement.x) {
         rightItems.push(item);
       }
     });
@@ -94,7 +86,7 @@ export class SpacingToolsComponent implements OnInit {
     rightItems.sort(this.sortLeftToRight);
 
     leftItems.forEach((item, index, array) => {
-      const itemToTheRight = index === 0 ? referenceItem : array[index - 1];
+      const itemToTheRight = index === 0 ? referenceElement : array[index - 1];
       const distanceToRightItem = itemToTheRight.x - item.x;
       const currentInterval = this.interval * (index + 1);
 
@@ -102,7 +94,7 @@ export class SpacingToolsComponent implements OnInit {
     });
 
     rightItems.forEach((item, index, array) => {
-      const itemToTheLeft = index === 0 ? referenceItem : array[index - 1];
+      const itemToTheLeft = index === 0 ? referenceElement : array[index - 1];
       const distanceToLeftItem = item.x - itemToTheLeft.x;
       const currentInterval = this.interval * (index + 1);
 
@@ -111,14 +103,14 @@ export class SpacingToolsComponent implements OnInit {
   }
 
   decreaseVerticalSpacing() {
-    const referenceItem = this.getReferenceItem();
+    const referenceElement = this.positionedElementService.getReferenceElement();
     const topItems = [];
     const bottomItems = [];
 
-    this.workAreaService.getSelectedElements().forEach(item => {
-      if (item.y < referenceItem.y) {
+    this.positionedElementService.getSelectedElements().forEach(item => {
+      if (item.y < referenceElement.y) {
         topItems.push(item);
-      } else if (item.y > referenceItem.y) {
+      } else if (item.y > referenceElement.y) {
         bottomItems.push(item);
       }
     });
@@ -127,7 +119,7 @@ export class SpacingToolsComponent implements OnInit {
     bottomItems.sort(this.sortTopToBottom);
 
     topItems.forEach((item, index, array) => {
-      const itemToTheRight = index === 0 ? referenceItem : array[index - 1];
+      const itemToTheRight = index === 0 ? referenceElement : array[index - 1];
       const distanceToRightItem = itemToTheRight.y - item.y;
       const currentInterval = this.interval * (index + 1);
 
@@ -135,7 +127,7 @@ export class SpacingToolsComponent implements OnInit {
     });
 
     bottomItems.forEach((item, index, array) => {
-      const itemToTheLeft = index === 0 ? referenceItem : array[index - 1];
+      const itemToTheLeft = index === 0 ? referenceElement : array[index - 1];
       const distanceToLeftItem = item.y - itemToTheLeft.y;
       const currentInterval = this.interval * (index + 1);
 
@@ -143,29 +135,29 @@ export class SpacingToolsComponent implements OnInit {
     });
   }
 
-  // If all left edges are different it's easy to just make two lists and spread them apart, ultimately the exact opposite of
+  // If all left edges are different we can just make two lists and spread them apart, ultimately the exact opposite of
   // decrease spacing. However if any left edges line up, the split becomes different.
-  // Items  with the same left edge as the reference item are then adjusted as follows:
+  // Items with the same left edge as the reference item are then adjusted as follows:
   // Items with a position above the reference item shift to the left, with items higher on the screen shifting farther to the left,
   // i.e. an item directly above the reference item will shift left the 8px interval, an item directly above that one will shift left 16px,
   // and so on.
   // Items with a position below the reference item shift to the right, with items lower on the screen shifting farther to the right,
   // i.e. an item directly below the reference item will shift right the 8px interval, an item directly below that will shift right 16px,
   // and so on.
-  // Items that also share the same vertical position as the reference item will be moved to the right, with items drawn later shifting more
+  // Items that also share the same vertical position as the reference item will be moved to the right, with items drawn later
   // or selected later moving the greater distance
   increaseHorizontalSpacing() {
-    const referenceItem = this.getReferenceItem();
+    const referenceElement = this.positionedElementService.getReferenceElement();
     const leftItems = [];
     const rightItems = [];
     const sameXItems = [];
 
-    this.workAreaService.getSelectedElements().forEach(item => {
-      if (item.x < referenceItem.x) {
+    this.positionedElementService.getSelectedElements().forEach(item => {
+      if (item.x < referenceElement.x) {
         leftItems.push(item);
-      } else if (item.x > referenceItem.x) {
+      } else if (item.x > referenceElement.x) {
         rightItems.push(item);
-      } else if (item.id !== referenceItem.id) {
+      } else if (item.id !== referenceElement.id) {
         sameXItems.push(item);
       }
     });
@@ -176,7 +168,7 @@ export class SpacingToolsComponent implements OnInit {
 
     const itemsToAddToRight = [];
     sameXItems.forEach(item => {
-      if (item.y < referenceItem.y) {
+      if (item.y < referenceElement.y) {
         leftItems.unshift(item);
       } else {
         itemsToAddToRight.push(item);
@@ -195,17 +187,17 @@ export class SpacingToolsComponent implements OnInit {
   }
 
   increaseVerticalSpacing() {
-    const referenceItem = this.getReferenceItem();
+    const referenceElement = this.positionedElementService.getReferenceElement();
     const topItems = [];
     const bottomItems = [];
     const sameYItems = [];
 
-    this.workAreaService.getSelectedElements().forEach(item => {
-      if (item.y < referenceItem.y) {
+    this.positionedElementService.getSelectedElements().forEach(item => {
+      if (item.y < referenceElement.y) {
         topItems.push(item);
-      } else if (item.y > referenceItem.y) {
+      } else if (item.y > referenceElement.y) {
         bottomItems.push(item);
-      } else if (item.id !== referenceItem.id) {
+      } else if (item.id !== referenceElement.id) {
         sameYItems.push(item);
       }
     });
@@ -216,7 +208,7 @@ export class SpacingToolsComponent implements OnInit {
 
     const itemsToAddToBottom = [];
     sameYItems.forEach(item => {
-      if (item.x < referenceItem.x) {
+      if (item.x < referenceElement.x) {
         topItems.unshift(item);
       } else {
         itemsToAddToBottom.push(item);
@@ -232,10 +224,5 @@ export class SpacingToolsComponent implements OnInit {
     bottomItems.forEach((item, index) => {
       item.y += this.interval * (index + 1);
     });
-  }
-
-  private getReferenceItem() {
-    const [lastItemInSelection] = this.workAreaService.getSelectedElements().slice(-1);
-    return lastItemInSelection;
   }
 }

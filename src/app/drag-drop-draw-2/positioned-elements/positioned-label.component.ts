@@ -1,5 +1,5 @@
 import {Component, ElementRef, OnInit, ViewChild, Input, Renderer2} from '@angular/core';
-import { PositionedLabel } from './test-models/positioned-label.model';
+import { PositionedLabel } from './positioned-label.model';
 
 @Component({
   selector: 'positioned-label',
@@ -8,20 +8,6 @@ import { PositionedLabel } from './test-models/positioned-label.model';
     `
       div {
         position: absolute;
-        border: 1px dashed gray;
-      }
-
-      .selected {
-          border: 2px solid blue;
-          cursor: move;
-      }
-
-      .selected:active {
-          cursor: move;
-      }
-
-      .anchor {
-          border-color: red;
       }
     `
   ]

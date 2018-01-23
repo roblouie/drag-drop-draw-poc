@@ -1,9 +1,9 @@
 import { Component, ElementRef, OnInit, Renderer2, ViewChild } from '@angular/core';
-import { PositionedImage } from './test-models/positioned-image.model';
-import { PositionedElement } from './positioned-element.model';
-import { PositionedLabel } from './test-models/positioned-label.model';
-import { Point } from './point.model';
-import { WorkAreaService } from './work-area.service';
+import { PositionedImage } from '../positioned-elements/positioned-image.model';
+import { PositionedElement } from '../positioned-elements/positioned-element.model';
+import { PositionedLabel } from '../positioned-elements/positioned-label.model';
+import { Point } from '../point.model';
+import { PositionedElementService } from '../positioned-element.service';
 
 @Component({
   selector: 'app-work-area',
@@ -16,13 +16,15 @@ export class WorkAreaComponent implements OnInit {
   startingPosition;
   isDrawing = false;
   isMoving = false;
+  isResizing = false;
+  dragHandle: string;
   dragBox;
   @ViewChild('container') private containerElement: ElementRef;
 
   constructor(
     private elRef: ElementRef,
     private renderer: Renderer2,
-    private workAreaService: WorkAreaService,
+    private positionedElementService: PositionedElementService,
   ) {}
 
   ngOnInit() {
@@ -40,7 +42,7 @@ export class WorkAreaComponent implements OnInit {
   }
 
   onMouseUp(event: any) {
-    if (event.button === 2) {
+    if (event.button === this.mouseButtons.right) {
       return false;
     }
 
@@ -73,11 +75,14 @@ export class WorkAreaComponent implements OnInit {
       this.renderer.removeChild(this.containerElement.nativeElement, this.dragBox);
     }
 
+    this.isResizing = false;
     this.isMoving = false;
     this.startingPosition = null;
   }
 
   onMouseMove(event: any) {
+    // TODO: Clean this up, it's gotten way out of hand, needs split into private functions at the very least
+
     const currentPosition = this.getMousePositionRelativeToWorkspace(event);
     if (this.isDrawing) {
       const top = this.startingPosition.y < currentPosition.y ? this.startingPosition.y : currentPosition.y;
@@ -90,10 +95,71 @@ export class WorkAreaComponent implements OnInit {
       this.renderer.setStyle(this.dragBox, 'width', `${width}px`);
     } else if (this.isMoving) {
       const distance = new Point(currentPosition.x - this.startingPosition.x, currentPosition.y - this.startingPosition.y);
-      this.workAreaService.getSelectedElements().forEach(item => {
+      this.positionedElementService.getSelectedElements().forEach(item => {
         item.x += distance.x;
         item.y += distance.y;
       });
+      this.startingPosition = currentPosition;
+    } else if (this.isResizing) {
+
+      if (this.dragHandle === 'top-left') {
+        this.positionedElementService.getSelectedElements().forEach(item => {
+          if (item.width > 10) {
+            item.x += currentPosition.x - this.startingPosition.x;
+            item.width += this.startingPosition.x - currentPosition.x;
+          }
+          if (item.height > 10) {
+            item.y += currentPosition.y - this.startingPosition.y;
+            item.height += this.startingPosition.y - currentPosition.y;
+          }
+        });
+
+      } else if (this.dragHandle === 'top-center') {
+        this.positionedElementService.getSelectedElements().forEach(item => {
+          if (item.height > 10) {
+            item.y += currentPosition.y - this.startingPosition.y;
+            item.height += this.startingPosition.y - currentPosition.y;
+          }
+        });
+
+      } else if (this.dragHandle === 'top-right') {
+        this.positionedElementService.getSelectedElements().forEach(item => {
+          if (item.width > 10) {
+            item.width += currentPosition.x - this.startingPosition.x;
+          }
+          if (item.height > 10) {
+            item.y += currentPosition.y - this.startingPosition.y;
+            item.height += this.startingPosition.y - currentPosition.y;
+          }
+        });
+
+      } else if (this.dragHandle === 'center-left') {
+        this.positionedElementService.getSelectedElements().forEach(item => {
+          if (item.width > 10) {
+            item.x += currentPosition.x - this.startingPosition.x;
+            item.width += this.startingPosition.x - currentPosition.x;
+          }
+        });
+
+      } else if (this.dragHandle === 'center-right') {
+        this.positionedElementService.getSelectedElements().forEach(item => {
+          if (item.width > 10) {
+            item.width += currentPosition.x - this.startingPosition.x;
+          }
+        });
+
+      } else if (this.dragHandle === 'bottom-left') {
+        this.positionedElementService.getSelectedElements().forEach(item => {
+          if (item.width > 10) {
+            item.x += currentPosition.x - this.startingPosition.x;
+            item.width += this.startingPosition.x - currentPosition.x;
+          }
+          if (item.height > 10) {
+            item.height += currentPosition.y - this.startingPosition.y;
+          }
+        });
+      }
+
       this.startingPosition = currentPosition;
     }
   }
@@ -107,7 +173,7 @@ export class WorkAreaComponent implements OnInit {
     // TODO: Update logic for right mouse button down. Right button can only select a single item on mouse-down, it can't move items or
     // select multiple. Remaining right click handling happens on mouseUp, where the context menu is opened.
 
-    if (isClickingEmptyWorkspaceArea || this.currentTool !== 'select') {
+    if (isClickingEmptyWorkspaceArea) {
       this.isDrawing = true;
       this.renderer.setStyle(this.dragBox, 'top', `${this.startingPosition.y}px`);
       this.renderer.setStyle(this.dragBox, 'left', `${this.startingPosition.x}px`);
@@ -115,27 +181,47 @@ export class WorkAreaComponent implements OnInit {
       this.renderer.setStyle(this.dragBox, 'width', `0px`);
 
       this.renderer.appendChild(this.containerElement.nativeElement, this.dragBox);
+    } else if (event.target.classList.contains('resize-handle')) {
+      this.isResizing = true;
+      if (event.target.classList.contains('top-left')) {
+        this.dragHandle = 'top-left';
+      } else if (event.target.classList.contains('top-center')) {
+        this.dragHandle = 'top-center';
+      } else if (event.target.classList.contains('top-right')) {
+        this.dragHandle = 'top-right';
+      } else if (event.target.classList.contains('center-left')) {
+        this.dragHandle = 'center-left';
+      } else if (event.target.classList.contains('center-right')) {
+        this.dragHandle = 'center-right';
+      } else if (event.target.classList.contains('bottom-left')) {
+        this.dragHandle = 'bottom-left';
+      } else if (event.target.classList.contains('bottom-center')) {
+        this.dragHandle = 'bottom-center';
+      } else if (event.target.classList.contains('bottom-right')) {
+        this.dragHandle = 'bottom-right';
+      }
     } else {
       this.isMoving = true;
-      const selectedItem = this.workAreaService.positionedElementModels.find(model => model.id === elementID);
+
+      const selectedItem = this.positionedElementService.positionedElementModels.find(model => model.id === elementID);
       if (this.isClickingSelectedItem(elementID)) {
         if (event.ctrlKey) {
-          this.workAreaService.removeElementFromSelection(selectedItem);
+          this.positionedElementService.removeElementFromSelection(selectedItem);
         } else {
-          this.workAreaService.setElementAsAnchor(selectedItem);
+          this.positionedElementService.setReferenceElement(selectedItem);
         }
       } else {
         if (event.ctrlKey) {
-          this.workAreaService.addElementToSelection(selectedItem);
+          this.positionedElementService.addElementToSelection(selectedItem);
         } else {
-          this.workAreaService.setSelectedElements([selectedItem]);
+          this.positionedElementService.setSelectedElements([selectedItem]);
         }
       }
     }
   }
 
   private isClickingSelectedItem(clickedID): boolean {
-    return this.workAreaService.getSelectedElements().map(item => item.id).includes(clickedID);
+    return this.positionedElementService.getSelectedElements().map(item => item.id).includes(clickedID);
   }
 
   private addImage(x, y, width, height) {
@@ -146,8 +232,8 @@ export class WorkAreaComponent implements OnInit {
     image.width = width;
     image.height = height;
     // For now, just setting the id to the index, this will most likely come from the db ?
-    image.id = this.workAreaService.positionedElementModels.length;
-    this.workAreaService.positionedElementModels.push(image);
+    image.id = this.positionedElementService.positionedElementModels.length;
+    this.positionedElementService.positionedElementModels.push(image);
   }
 
   private addLabel(x, y, width, height) {
@@ -158,8 +244,8 @@ export class WorkAreaComponent implements OnInit {
     label.width = width;
     label.height = height;
     // For now, just setting the id to the index, this will most likely come from the db ?
-    label.id = this.workAreaService.positionedElementModels.length;
-    this.workAreaService.positionedElementModels.push(label);
+    label.id = this.positionedElementService.positionedElementModels.length;
+    this.positionedElementService.positionedElementModels.push(label);
   }
 
   private getMousePositionRelativeToWorkspace(event: any) {
@@ -174,15 +260,15 @@ export class WorkAreaComponent implements OnInit {
     const selectionBottom = selectionY + selectionHeight;
     const selectionRight = selectionX + selectionWidth;
 
-    const selectedItems = this.workAreaService.positionedElementModels.filter(model => {
+    const selectedItems = this.positionedElementService.positionedElementModels.filter(model => {
       return model.x < selectionRight && model.right > selectionX &&
              model.y < selectionBottom && model.bottom > selectionY;
     });
 
     if (shouldAdd) {
-      this.workAreaService.addElementsToSelection(selectedItems);
+      this.positionedElementService.addElementsToSelection(selectedItems);
     } else {
-      this.workAreaService.setSelectedElements(selectedItems);
+      this.positionedElementService.setSelectedElements(selectedItems);
     }
   }
 
