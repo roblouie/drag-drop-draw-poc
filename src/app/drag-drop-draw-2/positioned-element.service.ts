@@ -100,4 +100,34 @@ export class PositionedElementService {
 
     return copyOfAllItems;
   }
+
+  /**
+   * @description Takes all selected items (selectedElements) and moves them to the beginning of the overall
+   * list of elements (positionedElementModels). This affects the drawing order, and will cause these items
+   * to be drawn first, with later drawn elements appearing on top of them
+   */
+  sendToBack() {
+    const elementsToRemove = this.positionedElementModels.filter(element => this.selectedElements.includes(element));
+
+    const newPositionedElements = this.positionedElementModels.filter(element => !elementsToRemove.includes(element));
+
+    newPositionedElements.unshift(...this.selectedElements);
+
+    this.positionedElementModels = newPositionedElements;
+  }
+
+  /**
+   * @description Takes all selected items (selectedElements) and moves them to the end of the overall
+   * list of elements (positionedElementModels). This affects the drawing order, and will cause these items
+   * to be drawn last, appearing on top of elements before them.
+   */
+  sendToFront() {
+    const elementsToRemove = this.positionedElementModels.filter(element => this.selectedElements.includes(element));
+
+    const newPositionedElements = this.positionedElementModels.filter(element => !elementsToRemove.includes(element));
+
+    newPositionedElements.push(...this.selectedElements);
+
+    this.positionedElementModels = newPositionedElements;
+  }
 }

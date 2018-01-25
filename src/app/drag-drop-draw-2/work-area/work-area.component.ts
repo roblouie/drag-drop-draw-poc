@@ -24,7 +24,6 @@ export class WorkAreaComponent implements OnInit {
   @ViewChild('container') private containerElement: ElementRef;
 
   constructor(
-    private elRef: ElementRef,
     private renderer: Renderer2,
     private positionedElementService: PositionedElementService,
     private itemSnapService: ItemSnapService,
@@ -185,9 +184,9 @@ export class WorkAreaComponent implements OnInit {
       this.startingPosition = currentPosition;
     }
 
-    if ((this.isDrawing && this.currentTool !== 'select') || this.isMoving || this.isResizing) {
-      this.itemSnapService.checkAlignment(currentPosition);
-    }
+    //if ((this.isDrawing && this.currentTool !== 'select') || this.isMoving || this.isResizing) {
+    //  this.itemSnapService.checkAlignment(currentPosition);
+    //}
   }
 
   onMouseDown(event: any) {
@@ -245,9 +244,9 @@ export class WorkAreaComponent implements OnInit {
       }
     }
 
-    if ((this.isDrawing && this.currentTool !== 'select') || this.isMoving || this.isResizing) {
-      this.itemSnapService.setupAlignmentCheck();
-    }
+    //if ((this.isDrawing && this.currentTool !== 'select') || this.isMoving || this.isResizing) {
+    //  this.itemSnapService.setupAlignmentCheck();
+    //}
   }
 
   private isClickingSelectedItem(clickedID): boolean {
