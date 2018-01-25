@@ -4,11 +4,13 @@ import { PositionedElement } from '../positioned-elements/positioned-element.mod
 import { PositionedLabel } from '../positioned-elements/positioned-label.model';
 import { Point } from '../point.model';
 import { PositionedElementService } from '../positioned-element.service';
+import { ItemSnapService } from '../item-snap.service';
 
 @Component({
   selector: 'app-work-area',
   templateUrl: './work-area.html',
-  styleUrls: ['./work-area.scss']
+  styleUrls: ['./work-area.scss'],
+  providers: [ItemSnapService]
 })
 export class WorkAreaComponent implements OnInit {
   currentTool = 'image';
@@ -25,6 +27,7 @@ export class WorkAreaComponent implements OnInit {
     private elRef: ElementRef,
     private renderer: Renderer2,
     private positionedElementService: PositionedElementService,
+    private itemSnapService: ItemSnapService,
   ) {}
 
   ngOnInit() {
@@ -82,8 +85,8 @@ export class WorkAreaComponent implements OnInit {
 
   onMouseMove(event: any) {
     // TODO: Clean this up, it's gotten way out of hand, needs split into private functions at the very least
-
     const currentPosition = this.getMousePositionRelativeToWorkspace(event);
+
     if (this.isDrawing) {
       const top = this.startingPosition.y < currentPosition.y ? this.startingPosition.y : currentPosition.y;
       const left = this.startingPosition.x < currentPosition.x ? this.startingPosition.x : currentPosition.x;
@@ -181,6 +184,10 @@ export class WorkAreaComponent implements OnInit {
 
       this.startingPosition = currentPosition;
     }
+
+    if ((this.isDrawing && this.currentTool !== 'select') || this.isMoving || this.isResizing) {
+      this.itemSnapService.checkAlignment(currentPosition);
+    }
   }
 
   onMouseDown(event: any) {
@@ -237,6 +244,10 @@ export class WorkAreaComponent implements OnInit {
         }
       }
     }
+
+    if ((this.isDrawing && this.currentTool !== 'select') || this.isMoving || this.isResizing) {
+      this.itemSnapService.setupAlignmentCheck();
+    }
   }
 
   private isClickingSelectedItem(clickedID): boolean {
@@ -292,7 +303,7 @@ export class WorkAreaComponent implements OnInit {
   }
 
   private disableDefaultContextMenu() {
-    this.containerElement.nativeElement.addEventListener('contextmenu', function(e){
+    this.containerElement.nativeElement.addEventListener('contextmenu', function(e) {
       e.preventDefault();
     }, false);
   }

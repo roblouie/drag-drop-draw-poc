@@ -90,4 +90,14 @@ export class PositionedElementService {
     const [lastItemInSelection] = this.selectedElements.slice(-1);
     return lastItemInSelection;
   }
+
+  getAllUnselectedElements() {
+    const copyOfAllItems = this.positionedElementModels.slice();
+    this.selectedElements.forEach(element => {
+      const elementIndex = copyOfAllItems.indexOf(element);
+      copyOfAllItems.splice(elementIndex, 1);
+    });
+
+    return copyOfAllItems;
+  }
 }

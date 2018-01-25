@@ -4,7 +4,6 @@ export abstract class PositionedElement {
   y: number;
   width: number;
   height: number;
-  zIndex: number;
 
   get right() {
     return this.x + this.width;
