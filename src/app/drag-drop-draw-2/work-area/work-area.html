@@ -1,0 +1,24 @@
+
+<div id="work-area" #container
+     (mousemove)="onMouseMove($event)"
+     (mousedown)="onMouseDown($event)"
+     (mouseup)="onMouseUp($event)"
+     style="user-select: none; width: 900px; height: 600px; background-color: white; overflow: hidden; position: relative;">
+
+  <span *ngFor="let element of positionedElementService.positionedElementModels">
+    <positioned-image *ngIf="isImage(element)" [isSelected]="positionedElementService.isElementSelected(element)" [isReferenceElement]="positionedElementService.isReferenceElement(element)" [image]="element" appSelectable></positioned-image>
+    <positioned-label *ngIf="isLabel(element)" [isSelected]="positionedElementService.isElementSelected(element)" [isReferenceElement]="positionedElementService.isReferenceElement(element)" [label]="element" appSelectable></positioned-label>
+  </span>
+</div>
+
+<div>
+  <h3>Tools</h3>
+  <input type="radio" id="selection-tool" value="select" name="tool" [(ngModel)]="currentTool">
+  <label for="selection-tool">Select</label>
+
+  <input type="radio" id="image-tool" value="image" name="tool" [(ngModel)]="currentTool">
+  <label for="image-tool">Image</label>
+
+  <input type="radio" id="label-tool" value="label" name="tool" [(ngModel)]="currentTool">
+  <label for="label-tool">Label</label>
+</div>

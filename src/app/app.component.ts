@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -6,7 +9,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AppComponent implements OnInit {
 
-  constructor() { }
+  constructor(@Inject(DOCUMENT) private document: any) { }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {}
 }
