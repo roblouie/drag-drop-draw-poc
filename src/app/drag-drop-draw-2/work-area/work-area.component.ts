@@ -25,7 +25,7 @@ export class WorkAreaComponent implements OnInit {
 
   constructor(
     private renderer: Renderer2,
-    public positionedElementService: PositionedElementService,
+    private positionedElementService: PositionedElementService,
     private itemSnapService: ItemSnapService,
   ) {}
 
