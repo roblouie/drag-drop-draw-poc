@@ -4,7 +4,7 @@ import { PositionedImage } from './positioned-image.model';
 @Component({
   selector: 'positioned-image',
   template: `<div id="{{image.id}}" [ngStyle]="{
-      'background-image': 'url('+image.source+')',
+      'background-image': 'url('+imageSource+')',
       'left': image.x+'px',
       'top': image.y+'px',
       'width': image.width+'px',
@@ -21,6 +21,7 @@ import { PositionedImage } from './positioned-image.model';
 })
 export class PositionedImageComponent implements OnInit {
   @Input() image: PositionedImage;
+  imageSource = require('./koala.jpg');
 
   constructor(private elRef: ElementRef, private renderer: Renderer2) {}
 
