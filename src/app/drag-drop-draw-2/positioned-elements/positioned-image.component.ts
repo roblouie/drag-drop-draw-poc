@@ -16,8 +16,8 @@ import { PositionedImage } from './positioned-image.model';
         position: absolute;
         background-repeat: no-repeat;
       }
-    `
-  ]
+    `,
+  ],
 })
 export class PositionedImageComponent implements OnInit {
   @Input() image: PositionedImage;

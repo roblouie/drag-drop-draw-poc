@@ -3,6 +3,7 @@ $resize-handle-offset: 6px;
 $resize-handle-border-width: 1px;
 
 $selection-color: #1147A0;
+$snap-line-color: green;
 
 :host {
   display: block;
@@ -11,6 +12,12 @@ $selection-color: #1147A0;
 .selector {
   border: 1px dashed gray;
   position: absolute;
+}
+
+:host ::ng-deep .snap-line {
+  border: 1px solid $snap-line-color;
+  position: absolute;
+  z-index: 100;
 }
 
 :host ::ng-deep .selected {

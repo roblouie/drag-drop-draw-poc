@@ -86,6 +86,11 @@ export class PositionedElementService {
     this.selectedElements.push(elementToSet);
   }
 
+  setReferenceElementById(id: number) {
+    const element = this.selectedElements.find(positionedElement => positionedElement.id === id);
+    this.setReferenceElement(element);
+  }
+
   getReferenceElement() {
     const [lastItemInSelection] = this.selectedElements.slice(-1);
     return lastItemInSelection;
@@ -108,9 +113,7 @@ export class PositionedElementService {
    */
   sendToBack() {
     const elementsToRemove = this.positionedElementModels.filter(element => this.selectedElements.includes(element));
-
     const newPositionedElements = this.positionedElementModels.filter(element => !elementsToRemove.includes(element));
-
     newPositionedElements.unshift(...this.selectedElements);
 
     this.positionedElementModels = newPositionedElements;
@@ -123,9 +126,7 @@ export class PositionedElementService {
    */
   sendToFront() {
     const elementsToRemove = this.positionedElementModels.filter(element => this.selectedElements.includes(element));
-
     const newPositionedElements = this.positionedElementModels.filter(element => !elementsToRemove.includes(element));
-
     newPositionedElements.push(...this.selectedElements);
 
     this.positionedElementModels = newPositionedElements;

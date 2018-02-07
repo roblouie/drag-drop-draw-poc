@@ -1,3 +1,5 @@
+import { Rectangle } from '../../shared/geometry/rectangle.model';
+
 export abstract class PositionedElement {
   id: number;
   x: number;
@@ -11,5 +13,9 @@ export abstract class PositionedElement {
 
   get bottom() {
     return this.y + this.height;
+  }
+
+  get boundingRectangle(): Rectangle {
+    return new Rectangle(this.y, this.x, this.width, this.height);
   }
 }
