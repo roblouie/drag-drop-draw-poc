@@ -33,6 +33,6 @@ import { SelectableDirective } from './selectable/selectable.directive';
     AlignmentService,
     SizingService,
     SpacingService,
-  ]
+  ],
 })
 export class DragDropDraw2Module {}

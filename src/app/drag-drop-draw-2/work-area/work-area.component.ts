@@ -2,35 +2,37 @@ import { Component, ElementRef, OnInit, Renderer2, ViewChild } from '@angular/co
 import { PositionedImage } from '../positioned-elements/positioned-image.model';
 import { PositionedElement } from '../positioned-elements/positioned-element.model';
 import { PositionedLabel } from '../positioned-elements/positioned-label.model';
-import { Point } from '../point.model';
+import { Point } from '../../shared/geometry/point.model';
 import { PositionedElementService } from '../positioned-element.service';
 import { ItemSnapService } from '../item-snap.service';
+import { Rectangle } from '../../shared/geometry/rectangle.model';
 
 @Component({
   selector: 'app-work-area',
   templateUrl: './work-area.html',
   styleUrls: ['./work-area.scss'],
-  providers: [ItemSnapService]
+  providers: [ItemSnapService],
 })
 export class WorkAreaComponent implements OnInit {
-  currentTool = 'image';
+  @ViewChild('container') private containerElement: ElementRef;
   readonly mouseButtons = { left: 0, middle: 1, right: 2 };
+  currentTool = 'image';
   startingPosition;
   isDrawing = false;
   isMoving = false;
   isResizing = false;
   dragHandle: string;
   dragBox;
-  @ViewChild('container') private containerElement: ElementRef;
 
   constructor(
     private renderer: Renderer2,
     private positionedElementService: PositionedElementService,
-    private itemSnapService: ItemSnapService,
+    private itemSnapService: ItemSnapService
   ) {}
 
   ngOnInit() {
     this.disableDefaultContextMenu();
+    this.setSnapLineClass();
     this.dragBox = this.renderer.createElement('div');
     this.renderer.addClass(this.dragBox, 'selector');
   }
@@ -50,28 +52,24 @@ export class WorkAreaComponent implements OnInit {
 
     if (this.isDrawing) {
       const endingPosition = this.getMousePositionRelativeToWorkspace(event);
-      const top = this.startingPosition.y < endingPosition.y ? this.startingPosition.y : endingPosition.y;
-      const left = this.startingPosition.x < endingPosition.x ? this.startingPosition.x : endingPosition.x;
-      let width = Math.abs(this.startingPosition.x - endingPosition.x);
-      let height = Math.abs(this.startingPosition.y - endingPosition.y);
+      const drawnRectangle = Rectangle.fromPoints(this.startingPosition, endingPosition);
 
       // set width and height to default minimum if the user just clicked or barely dragged
-      if (this.currentTool !== 'select' && width <= 2 && height <= 2) {
-        width = 100;
-        height = 50;
+      if (this.currentTool !== 'select' && drawnRectangle.width <= 2 && drawnRectangle.height <= 2) {
+        drawnRectangle.width = 100;
+        drawnRectangle.height = 50;
       }
 
       switch (this.currentTool) {
         case 'select':
-          this.createMultiSelection(left, top, width, height, event.ctrlKey);
+          this.createMultiSelection(drawnRectangle, event.ctrlKey);
           break;
         case 'image':
-          this.addImage(left, top, width, height);
+          this.addImage(drawnRectangle);
           break;
         case 'label':
-          this.addLabel(left, top, width, height);
+          this.addLabel(drawnRectangle);
           break;
-
       }
       this.isDrawing = false;
       this.renderer.removeChild(this.containerElement.nativeElement, this.dragBox);
@@ -80,6 +78,7 @@ export class WorkAreaComponent implements OnInit {
     this.isResizing = false;
     this.isMoving = false;
     this.startingPosition = null;
+    this.clearSnapLines();
   }
 
   onMouseMove(event: any) {
@@ -87,14 +86,7 @@ export class WorkAreaComponent implements OnInit {
     const currentPosition = this.getMousePositionRelativeToWorkspace(event);
 
     if (this.isDrawing) {
-      const top = this.startingPosition.y < currentPosition.y ? this.startingPosition.y : currentPosition.y;
-      const left = this.startingPosition.x < currentPosition.x ? this.startingPosition.x : currentPosition.x;
-      const width = Math.abs(this.startingPosition.x - currentPosition.x);
-      const height = Math.abs(this.startingPosition.y - currentPosition.y);
-      this.renderer.setStyle(this.dragBox, 'top', `${top}px`);
-      this.renderer.setStyle(this.dragBox, 'left', `${left}px`);
-      this.renderer.setStyle(this.dragBox, 'height', `${height}px`);
-      this.renderer.setStyle(this.dragBox, 'width', `${width}px`);
+      this.updateDragboxSizeAndPosition(this.dragBox, currentPosition, this.startingPosition);
     } else if (this.isMoving) {
       const distance = new Point(currentPosition.x - this.startingPosition.x, currentPosition.y - this.startingPosition.y);
       this.positionedElementService.getSelectedElements().forEach(item => {
@@ -184,9 +176,10 @@ export class WorkAreaComponent implements OnInit {
       this.startingPosition = currentPosition;
     }
 
-    //if ((this.isDrawing && this.currentTool !== 'select') || this.isMoving || this.isResizing) {
-    //  this.itemSnapService.checkAlignment(currentPosition);
-    //}
+    if (this.shouldSnap()) {
+      this.itemSnapService.checkAlignment(currentPosition);
+      this.drawSnapLines();
+    }
   }
 
   onMouseDown(event: any) {
@@ -208,6 +201,8 @@ export class WorkAreaComponent implements OnInit {
       this.renderer.appendChild(this.containerElement.nativeElement, this.dragBox);
     } else if (event.target.classList.contains('resize-handle')) {
       this.isResizing = true;
+      const handleElementId = Number(event.target.dataset.controlId);
+      this.positionedElementService.setReferenceElementById(handleElementId);
       if (event.target.classList.contains('top-left')) {
         this.dragHandle = 'top-left';
       } else if (event.target.classList.contains('top-center')) {
@@ -244,34 +239,35 @@ export class WorkAreaComponent implements OnInit {
       }
     }
 
-    //if ((this.isDrawing && this.currentTool !== 'select') || this.isMoving || this.isResizing) {
-    //  this.itemSnapService.setupAlignmentCheck();
-    //}
+    if (this.shouldSnap()) {
+      this.itemSnapService.setupAlignmentCheck();
+      this.drawSnapLines();
+    }
   }
 
   private isClickingSelectedItem(clickedID): boolean {
     return this.positionedElementService.getSelectedElements().map(item => item.id).includes(clickedID);
   }
 
-  private addImage(x, y, width, height) {
+  private addImage(boundingRect: Rectangle) {
     const image = new PositionedImage();
     image.source = 'assets/images/koala.jpg';
-    image.x = x;
-    image.y = y;
-    image.width = width;
-    image.height = height;
+    image.x = boundingRect.left;
+    image.y = boundingRect.top;
+    image.width = boundingRect.width;
+    image.height = boundingRect.height;
     // For now, just setting the id to the index, this will most likely come from the db ?
     image.id = this.positionedElementService.positionedElementModels.length;
     this.positionedElementService.positionedElementModels.push(image);
   }
 
-  private addLabel(x, y, width, height) {
+  private addLabel(boundingRect: Rectangle) {
     const label = new PositionedLabel();
     label.text = 'test label';
-    label.x = x;
-    label.y = y;
-    label.width = width;
-    label.height = height;
+    label.x = boundingRect.left;
+    label.y = boundingRect.top;
+    label.width = boundingRect.width;
+    label.height = boundingRect.height;
     // For now, just setting the id to the index, this will most likely come from the db ?
     label.id = this.positionedElementService.positionedElementModels.length;
     this.positionedElementService.positionedElementModels.push(label);
@@ -285,13 +281,9 @@ export class WorkAreaComponent implements OnInit {
     }
   }
 
-  private createMultiSelection(selectionX, selectionY, selectionWidth, selectionHeight, shouldAdd) {
-    const selectionBottom = selectionY + selectionHeight;
-    const selectionRight = selectionX + selectionWidth;
-
+  private createMultiSelection(selection: Rectangle, shouldAdd) {
     const selectedItems = this.positionedElementService.positionedElementModels.filter(model => {
-      return model.x < selectionRight && model.right > selectionX &&
-             model.y < selectionBottom && model.bottom > selectionY;
+      return selection.isIntersecting(model.boundingRectangle);
     });
 
     if (shouldAdd) {
@@ -301,9 +293,52 @@ export class WorkAreaComponent implements OnInit {
     }
   }
 
+  private drawSnapLines() {
+    Object.keys(this.itemSnapService.snapLines).forEach(key => {
+      const lineData = this.itemSnapService.snapLines[key];
+      if (lineData.from === null && lineData.to === null) {
+        this.renderer.removeChild(this.containerElement.nativeElement, lineData.element);
+      } else {
+        const width = Math.abs(lineData.from.x - lineData.to.x);
+        const height = Math.abs(lineData.from.y - lineData.to.y);
+        this.renderer.setStyle(lineData.element, 'top', `${lineData.from.y}px`);
+        this.renderer.setStyle(lineData.element, 'left', `${lineData.from.x}px`);
+        this.renderer.setStyle(lineData.element, 'height', `${height}px`);
+        this.renderer.setStyle(lineData.element, 'width', `${width}px`);
+        this.renderer.appendChild(this.containerElement.nativeElement, lineData.element);
+      }
+    });
+  }
+
+  private setSnapLineClass() {
+    Object.keys(this.itemSnapService.snapLines).forEach(key => {
+      this.renderer.addClass(this.itemSnapService.snapLines[key].element, 'snap-line');
+    })
+  }
+
+  private clearSnapLines() {
+    Object.keys(this.itemSnapService.snapLines).forEach(key => {
+      const lineData = this.itemSnapService.snapLines[key];
+      this.renderer.removeChild(this.containerElement.nativeElement, lineData.element);
+    });
+  }
+
+  private updateDragboxSizeAndPosition(dragBox: any, currentPosition: Point, startingPosition) {
+    const dragBoxRectangle = Rectangle.fromPoints(currentPosition, startingPosition);
+    this.renderer.setStyle(dragBox, 'top', `${dragBoxRectangle.top}px`);
+    this.renderer.setStyle(dragBox, 'left', `${dragBoxRectangle.left}px`);
+    this.renderer.setStyle(dragBox, 'height', `${dragBoxRectangle.height}px`);
+    this.renderer.setStyle(dragBox, 'width', `${dragBoxRectangle.width}px`);
+  }
+
   private disableDefaultContextMenu() {
     this.containerElement.nativeElement.addEventListener('contextmenu', function(e) {
       e.preventDefault();
     }, false);
+  }
+
+  private shouldSnap() {
+    const isDrawingElement = this.isDrawing && this.currentTool !== 'select';
+    return isDrawingElement || this.isMoving || this.isResizing;
   }
 }

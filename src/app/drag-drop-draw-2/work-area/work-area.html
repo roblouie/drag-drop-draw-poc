@@ -6,8 +6,21 @@
      style="user-select: none; width: 900px; height: 600px; background-color: white; overflow: hidden; position: relative;">
 
   <span *ngFor="let element of positionedElementService.positionedElementModels">
-    <positioned-image *ngIf="isImage(element)" [isSelected]="positionedElementService.isElementSelected(element)" [isReferenceElement]="positionedElementService.isReferenceElement(element)" [image]="element" appSelectable></positioned-image>
-    <positioned-label *ngIf="isLabel(element)" [isSelected]="positionedElementService.isElementSelected(element)" [isReferenceElement]="positionedElementService.isReferenceElement(element)" [label]="element" appSelectable></positioned-label>
+    <positioned-image *ngIf="isImage(element)"
+                      [image]="element"
+                      appSelectable
+                      [isSelected]="positionedElementService.isElementSelected(element)"
+                      [isReferenceElement]="positionedElementService.isReferenceElement(element)"
+                      [selectableId]="element.id">
+    </positioned-image>
+
+    <positioned-label *ngIf="isLabel(element)"
+                      [label]="element"
+                      appSelectable
+                      [isSelected]="positionedElementService.isElementSelected(element)"
+                      [isReferenceElement]="positionedElementService.isReferenceElement(element)"
+                      [selectableId]="element.id">
+    </positioned-label>
   </span>
 </div>
 
